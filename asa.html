@@ -77,7 +77,7 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); line
 <div class="header" style="position:relative">
   <h1>&#x639;&#x635;&#x627; &#x645;&#x648;&#x633;&#x649; &#x2014; Asa</h1>
   <div class="verse">&#x641;&#x648;&#x642;&#x639; &#x627;&#x644;&#x62D;&#x642; &#x648;&#x628;&#x637;&#x644; &#x645;&#x627; &#x643;&#x627;&#x646;&#x648;&#x627; &#x64A;&#x639;&#x645;&#x644;&#x648;&#x646; &#x2014; &#x37;:&#x31;&#x31;&#x37;</div>
-  <div class="subtitle">Forensic Data Integrity Screener for Meta-Analysis &middot; v1.0.0</div>
+  <div class="subtitle">Forensic Data Integrity Screener for Meta-Analysis &middot; v2.0.0</div>
   <div class="header-controls">
     <button id="themeToggle" title="Toggle light/dark mode">&#x2600;</button>
     <button id="settingsBtn" title="Settings">&#x2699;</button>
@@ -136,11 +136,11 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); line
   <!-- Methodology overview -->
   <div class="card" style="margin-bottom:16px">
     <h3 style="color:var(--accent);margin-bottom:12px">Methodology</h3>
-    <p style="margin-bottom:12px">Asa applies four complementary forensic tests ("fangs") to each study in your dataset. Each fang probes a different dimension of data plausibility &mdash; from granularity of means to distributional properties of raw digits. Studies are classified by a severity-weighted composite verdict.</p>
+    <p style="margin-bottom:12px">Asa applies seven complementary forensic tests ("fangs") to your dataset. Five are per-study (GRIM, SPRITE, statcheck, GRIMMER) and three are dataset-level (TDA, Benford's Law, cross-study duplication). Each fang probes a different dimension of data plausibility. Studies are classified by a severity-weighted composite verdict.</p>
     <div style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:16px;margin-bottom:12px;font-family:var(--font-mono);font-size:12px;line-height:1.8;color:var(--text-secondary)">
       <div style="text-align:center;margin-bottom:8px;color:var(--accent);font-size:13px">Workflow</div>
       <div>1. Data Entry &rarr; parse CSV / manual rows (mean, SD, N, p-value, test stat)</div>
-      <div>2. The Gauntlet &rarr; run all 4 fangs per study, compute weighted verdict</div>
+      <div>2. The Gauntlet &rarr; run all 7 fangs (5 per-study + 3 dataset-level), compute weighted verdict</div>
       <div>3. Serpent's Eye &rarr; study &times; fang heatmap for pattern detection</div>
       <div>4. Forensic Reports &rarr; per-study detail with plain-language interpretation</div>
       <div>5. Export &rarr; CSV, JSON, or TruthCert receipt bundle</div>
@@ -202,8 +202,31 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); line
   <div class="card" style="margin-bottom:12px">
     <h3 style="color:var(--accent);margin-bottom:8px">Fang 4: Terminal Digit Analysis (TDA)</h3>
     <p style="margin-bottom:8px">TDA examines the distribution of last digits across all numeric values in the dataset. In authentic data, terminal digits are approximately uniformly distributed (each digit 0&ndash;9 appears ~10% of the time). Fabricated data often shows non-uniform patterns, detectable via a &chi;&sup2; goodness-of-fit test.</p>
-    <p style="margin-bottom:4px;font-size:13px"><strong>Applicability:</strong> Requires &ge;20 numeric values for reliable &chi;&sup2; (df=9). Fewer values produce a SKIP.</p>
+    <p style="margin-bottom:4px;font-size:13px"><strong>Applicability:</strong> Dataset-level. Requires &ge;20 numeric values for reliable &chi;&sup2; (df=9). Fewer values produce a SKIP.</p>
     <p style="font-size:13px;color:var(--text-secondary)">Mosimann, J. E., Wiseman, C. V., &amp; Edelman, R. E. (1995). Data fabrication: Can people generate random digits? <em>Accountability in Research</em>, 4(1), 31&ndash;46.</p>
+  </div>
+
+  <div class="card" style="margin-bottom:12px">
+    <h3 style="color:var(--accent);margin-bottom:8px">Fang 5: GRIMMER (SD Consistency)</h3>
+    <p style="margin-bottom:8px">GRIMMER extends GRIM to standard deviations. For discrete integer data, the sum of squared observations must be a non-negative integer. This constrains which SD values are mathematically possible given the reported mean and sample size. GRIMMER tests: SD&sup2;&times;(n&minus;1) + n&times;mean&sup2; = &Sigma;x<sub>i</sub>&sup2;, which must be integer-valued.</p>
+    <p style="margin-bottom:4px;font-size:13px"><strong>Applicability:</strong> Per-study. Discrete/count data with reported SD, mean, and n. Skipped for continuous measures.</p>
+    <p style="margin-bottom:4px;font-size:13px"><strong>Tier:</strong> A (Conclusive) &mdash; a GRIMMER failure proves mathematical impossibility.</p>
+    <p style="font-size:13px;color:var(--text-secondary)">Anaya, J. (2016). The GRIMMER test: A method for testing the validity of reported measures of variability. <em>PeerJ Preprints</em>, 4, e2400v1.</p>
+  </div>
+
+  <div class="card" style="margin-bottom:12px">
+    <h3 style="color:var(--accent);margin-bottom:8px">Fang 6: Benford's Law (First-Digit Distribution)</h3>
+    <p style="margin-bottom:8px">Benford's Law states that in many naturally occurring datasets, the leading significant digit d (1&ndash;9) follows P(d) = log<sub>10</sub>(1 + 1/d). Digit 1 appears ~30.1% of the time, while digit 9 appears only ~4.6%. Fabricated numbers tend to have more uniform first digits. A &chi;&sup2; goodness-of-fit test (df=8) assesses conformity.</p>
+    <p style="margin-bottom:4px;font-size:13px"><strong>Applicability:</strong> Dataset-level. Requires &ge;30 first significant digits. Works best when data spans multiple orders of magnitude.</p>
+    <p style="margin-bottom:4px;font-size:13px"><strong>Caveat:</strong> Narrow-range clinical data (e.g., all blood pressures 100&ndash;180) may naturally deviate from Benford&rsquo;s Law. Context matters.</p>
+    <p style="font-size:13px;color:var(--text-secondary)">Benford, F. (1938). The law of anomalous numbers. <em>Proceedings of the American Philosophical Society</em>, 78(4), 551&ndash;572. &bull; Newcomb, S. (1881). Note on the frequency of use of the different digits in natural numbers. <em>American Journal of Mathematics</em>, 4(1), 39&ndash;40.</p>
+  </div>
+
+  <div class="card" style="margin-bottom:12px">
+    <h3 style="color:var(--accent);margin-bottom:8px">Fang 7: Cross-Study Duplication</h3>
+    <p style="margin-bottom:8px">This novel method detects suspiciously identical baseline values across study pairs &mdash; a hallmark of copy-paste data fabrication. For each pair of studies, Asa compares all shared numeric fields (n, mean, SD for both arms). Pairs sharing &ge;4 identical values out of 6 comparable fields are flagged as potentially duplicated.</p>
+    <p style="margin-bottom:4px;font-size:13px"><strong>Applicability:</strong> Dataset-level. Requires &ge;2 studies with comparable numeric data.</p>
+    <p style="margin-bottom:4px;font-size:13px"><strong>Note:</strong> Legitimate duplication can occur (e.g., same trial reported in multiple publications). Flagged pairs warrant investigation, not automatic rejection.</p>
   </div>
 
   <!-- Technical details -->
@@ -220,7 +243,7 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); line
     <p style="color:var(--text-secondary)">Asa flags statistical anomalies for investigation, not as proof of fraud. GRIM and SPRITE failures prove mathematical impossibility of reported statistics &mdash; but the cause could be transcription error, rounding differences, or unit confusion rather than fabrication. statcheck flags may arise from unconventional rounding or one-tailed tests. TDA deviations may reflect legitimate data patterns. Always investigate flagged studies in context before drawing conclusions about data integrity.</p>
   </div>
 
-  <p style="font-size:12px;color:var(--text-secondary)">Asa v<span id="aboutVersion">1.0.0</span> &mdash; No external dependencies. All computations run locally in your browser. &copy; 2026.</p>
+  <p style="font-size:12px;color:var(--text-secondary)">Asa v<span id="aboutVersion">2.0.0</span> &mdash; No external dependencies. All computations run locally in your browser. &copy; 2026.</p>
 </div>
 
 <!-- Settings Modal -->
@@ -258,7 +281,7 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); line
    ASA v1.0.0 -- Forensic Data Integrity Screener
    ============================================================ */
 
-const ASA_VERSION = '1.0.0';
+const ASA_VERSION = '2.0.0';
 const LS_PREFIX = 'asa_';
 
 // -- Tab switching --
@@ -509,6 +532,62 @@ function grimCheck(mean, n, items, decimals, rounding) {
 }
 
 /* ============================================================
+   FANG 5: GRIMMER
+   Anaya (2016). Tests if SD is possible given n + mean.
+   For discrete data: SD^2*(n-1) + n*mean^2 = sum_of_squares
+   which must be a non-negative integer (for items=1).
+   ============================================================ */
+
+function grimmerCheck(sd, n, mean, items, decimals) {
+  items = items || 1;
+  decimals = (decimals !== undefined && decimals !== null) ? decimals : 2;
+  if (n < 2) return { pass: null, explanation: 'GRIMMER requires n >= 2 (SKIPPED)' };
+  if (sd < 0) return { pass: false, explanation: 'SD cannot be negative' };
+
+  var effectiveN = n * items;
+  var sdScale = Math.pow(10, decimals);
+  var halfUnitSD = 0.5 / sdScale;
+
+  // For discrete integer data with k items, each observation is a multiple of 1/k.
+  // sum = mean * n * items (must be integer -- GRIM tests this)
+  // sum_of_squares = Σxi² must be a non-negative integer multiple of 1/k²
+  // Relationship: var*(n-1) = Σxi² - n*mean²
+  // So: Σxi² = SD²*(n-1) + n*mean²
+  // For k items: Σxi² * k² must be a non-negative integer
+
+  function isConsistent(testSD) {
+    if (testSD < 0) return false;
+    var variance = testSD * testSD;
+    var ss = variance * (n - 1);
+    var sumOfSquares = ss + n * mean * mean;
+    // Scale by items² to check integer constraint
+    var scaled = sumOfSquares * items * items;
+    // Must be non-negative integer
+    if (scaled < -1e-6) return false;
+    var remainder = Math.abs(scaled - Math.round(scaled));
+    return remainder < 0.01; // generous tolerance for float arithmetic
+  }
+
+  // Check with rounding: reported SD could be rounded up or down
+  var pass = isConsistent(sd) || isConsistent(sd + halfUnitSD) || isConsistent(sd - halfUnitSD);
+
+  var variance = sd * sd;
+  var sumOfSquares = variance * (n - 1) + n * mean * mean;
+  var scaledSS = sumOfSquares * items * items;
+  var remainder = Math.abs(scaledSS - Math.round(scaledSS));
+
+  return {
+    pass: pass,
+    sumOfSquares: sumOfSquares,
+    scaledSS: scaledSS,
+    remainder: remainder,
+    explanation: pass
+      ? 'SD=' + sd + ' is consistent with n=' + n + ', mean=' + mean + ' (sum-of-squares check passed)'
+      : 'SD=' + sd + ' yields non-integer sum of squares (' + scaledSS.toFixed(4) + ') for n=' + n + ', mean=' + mean + ' \u2192 IMPOSSIBLE'
+  };
+}
+
+/* ============================================================
    SEEDED PRNG (xoshiro128**)
    Ported from MultiverseMA.
    ============================================================ */
@@ -754,6 +833,164 @@ function tdaCheck(digitCounts) {
 }
 
 /* ============================================================
+   FANG 6: BENFORD'S LAW (dataset-level)
+   Benford (1938), Newcomb (1881).
+   First significant digit d follows P(d) = log10(1 + 1/d).
+   ============================================================ */
+
+function extractFirstDigits(values) {
+  var digits = [];
+  for (var i = 0; i < values.length; i++) {
+    var v = Math.abs(values[i]);
+    if (v === 0 || !isFinite(v)) continue;
+    // Get first significant digit: strip leading zeros
+    var s = v.toExponential();
+    var d = parseInt(s.charAt(0));
+    if (d >= 1 && d <= 9) digits.push(d);
+  }
+  return digits;
+}
+
+function benfordCheck(firstDigits) {
+  // Count frequencies for digits 1-9
+  var counts = [0,0,0,0,0,0,0,0,0]; // index 0 = digit 1, index 8 = digit 9
+  for (var i = 0; i < firstDigits.length; i++) {
+    var d = firstDigits[i];
+    if (d >= 1 && d <= 9) counts[d - 1]++;
+  }
+
+  var total = 0;
+  for (var j = 0; j < 9; j++) total += counts[j];
+
+  if (total < 30) {
+    return {
+      verdict: 'SKIPPED',
+      chiSq: null,
+      pValue: null,
+      total: total,
+      observed: counts,
+      expected: null,
+      explanation: 'Only ' + total + ' first digits (need \u226530 for meaningful test)'
+    };
+  }
+
+  // Benford expected proportions: P(d) = log10(1 + 1/d)
+  var expected = [];
+  var chiSq = 0;
+  for (var k = 1; k <= 9; k++) {
+    var expProp = Math.log10(1 + 1 / k);
+    var expCount = expProp * total;
+    expected.push(expCount);
+    chiSq += Math.pow(counts[k - 1] - expCount, 2) / expCount;
+  }
+
+  var pValue = 1 - pchisq(chiSq, 8); // df = 9 digits - 1
+
+  var verdict;
+  if (pValue > 0.05) verdict = 'PASS';
+  else if (pValue > 0.01) verdict = 'WARN';
+  else verdict = 'FAIL';
+
+  return {
+    verdict: verdict,
+    chiSq: chiSq,
+    pValue: pValue,
+    total: total,
+    observed: counts,
+    expected: expected,
+    explanation: 'Benford \u03c7\u00b2(8) = ' + chiSq.toFixed(2) + ', p = ' + pValue.toFixed(4) + '. ' +
+      (verdict === 'PASS' ? 'First-digit distribution consistent with Benford\'s Law.'
+      : verdict === 'WARN' ? 'Mild deviation from Benford\'s Law -- warrants investigation.'
+      : 'Significant deviation from Benford\'s Law -- suspicious pattern.')
+  };
+}
+
+/* ============================================================
+   FANG 7: CROSS-STUDY DUPLICATION (dataset-level)
+   Detects suspiciously identical baseline values across study
+   pairs -- a hallmark of copy-paste data fabrication.
+   ============================================================ */
+
+function duplicationCheck(rows) {
+  var numericFields = ['n_t', 'n_c', 'mean_t', 'mean_c', 'sd_t', 'sd_c'];
+  var threshold = 4; // flag pairs with >= 4 matching fields out of 6
+  var tolerance = 0.001; // rounding tolerance for float comparison
+
+  if (!rows || rows.length < 2) {
+    return {
+      verdict: 'SKIPPED',
+      flaggedPairs: [],
+      explanation: 'Need at least 2 studies for cross-study duplication check'
+    };
+  }
+
+  // Count how many studies have numeric data at all
+  var validStudies = 0;
+  for (var vi = 0; vi < rows.length; vi++) {
+    var hasAny = false;
+    for (var vf = 0; vf < numericFields.length; vf++) {
+      if (rows[vi][numericFields[vf]] != null && isFinite(rows[vi][numericFields[vf]])) { hasAny = true; break; }
+    }
+    if (hasAny) validStudies++;
+  }
+  if (validStudies < 2) {
+    return {
+      verdict: 'SKIPPED',
+      flaggedPairs: [],
+      explanation: 'Fewer than 2 studies with comparable numeric data'
+    };
+  }
+
+  var flaggedPairs = [];
+
+  for (var i = 0; i < rows.length; i++) {
+    for (var j = i + 1; j < rows.length; j++) {
+      var matches = 0;
+      var compared = 0;
+      var matchedFields = [];
+
+      for (var fi = 0; fi < numericFields.length; fi++) {
+        var field = numericFields[fi];
+        var a = rows[i][field];
+        var b = rows[j][field];
+        if (a != null && b != null && isFinite(a) && isFinite(b)) {
+          compared++;
+          if (Math.abs(a - b) <= tolerance) {
+            matches++;
+            matchedFields.push(field);
+          }
+        }
+      }
+
+      // Only flag if enough fields were compared AND enough matched
+      if (compared >= 4 && matches >= threshold) {
+        flaggedPairs.push({
+          study1: rows[i].study || ('Study ' + (i + 1)),
+          study2: rows[j].study || ('Study ' + (j + 1)),
+          matches: matches,
+          compared: compared,
+          matchedFields: matchedFields,
+          explanation: matches + '/' + compared + ' numeric fields identical: ' + matchedFields.join(', ')
+        });
+      }
+    }
+  }
+
+  var verdict;
+  if (flaggedPairs.length === 0) verdict = 'PASS';
+  else verdict = 'FAIL';
+
+  return {
+    verdict: verdict,
+    flaggedPairs: flaggedPairs,
+    totalPairs: rows.length * (rows.length - 1) / 2,
+    explanation: flaggedPairs.length === 0
+      ? 'No suspicious duplication detected across ' + (rows.length * (rows.length - 1) / 2) + ' study pairs.'
+      : flaggedPairs.length + ' study pair(s) share suspiciously identical baseline values.'
+  };
+}
+
+/* ============================================================
    CSV PARSER + COLUMN MAPPER
    ============================================================ */
 
@@ -988,12 +1225,12 @@ function runFullAnalysis(rows) {
   var settings = getSettings();
   var results = [];
 
-  // Collect all numeric values for TDA (include 0)
+  // Collect all numeric values for TDA + Benford
   var allNumericValues = [];
 
   for (var ri = 0; ri < rows.length; ri++) {
     var row = rows[ri];
-    var r = { study: row.study || ('Study ' + (results.length + 1)), grim: null, sprite: null, statcheck: null, verdict: 'GREY' };
+    var r = { study: row.study || ('Study ' + (results.length + 1)), grim: null, grimmer: null, sprite: null, statcheck: null, verdict: 'GREY' };
 
     // -- Input validation --
     var dataType = row.data_type || settings.dataType;
@@ -1037,6 +1274,40 @@ function runFullAnalysis(rows) {
       }
     } else {
       r.grim = { result: 'SKIPPED', explanation: 'Continuous data -- GRIM not applicable' };
+    }
+
+    // -- GRIMMER (Fang 5: SD consistency) --
+    if (dataType !== 'continuous') {
+      var grimmerResults = [];
+      var grArms = ['_t', '_c'];
+      for (var gri = 0; gri < grArms.length; gri++) {
+        var grArm = grArms[gri];
+        var grn = row['n' + grArm];
+        var grmean = row['mean' + grArm];
+        var grsd = row['sd' + grArm];
+        var grMeanStr = row['_mean' + grArm + '_str'] || String(grmean);
+        if (grn != null && grmean != null && grsd != null && grn >= 2) {
+          var grDec = settings.decimals === 'auto' ? countDecimals(grMeanStr) : parseInt(settings.decimals);
+          var gr = grimmerCheck(grsd, grn, grmean, items, grDec);
+          var grObj = { arm: grArm === '_t' ? 'treatment' : 'control' };
+          var grKeys = Object.keys(gr);
+          for (var grki = 0; grki < grKeys.length; grki++) grObj[grKeys[grki]] = gr[grKeys[grki]];
+          grimmerResults.push(grObj);
+        }
+      }
+      if (grimmerResults.length > 0) {
+        var anyGrimmerFail = false;
+        for (var gri2 = 0; gri2 < grimmerResults.length; gri2++) { if (grimmerResults[gri2].pass === false) anyGrimmerFail = true; }
+        r.grimmer = {
+          result: anyGrimmerFail ? 'FAIL' : 'PASS',
+          arms: grimmerResults,
+          explanation: grimmerResults.map(function(gr2) { return gr2.arm + ': ' + gr2.explanation; }).join('; ')
+        };
+      } else {
+        r.grimmer = { result: 'SKIPPED', explanation: 'Insufficient data for GRIMMER' };
+      }
+    } else {
+      r.grimmer = { result: 'SKIPPED', explanation: 'Continuous data -- GRIMMER not applicable' };
     }
 
     // -- SPRITE (both arms) --
@@ -1092,7 +1363,7 @@ function runFullAnalysis(rows) {
       r.statcheck = { result: 'SKIPPED', explanation: 'Insufficient data for statcheck' };
     }
 
-    // Collect numeric values for TDA (include all valid numbers, include 0)
+    // Collect numeric values for TDA + Benford
     var tdaFields = ['n_t','n_c','mean_t','mean_c','sd_t','sd_c','test_stat','df'];
     for (var tfi = 0; tfi < tdaFields.length; tfi++) {
       var tfield = tdaFields[tfi];
@@ -1103,15 +1374,16 @@ function runFullAnalysis(rows) {
 
     // -- Per-study verdict (Tier-weighted) --
     var grimFail = r.grim && r.grim.result === 'FAIL';
+    var grimmerFail = r.grimmer && r.grimmer.result === 'FAIL';
     var spriteFail = r.sprite && r.sprite.result === 'FAIL';
     var scDecisionErr = r.statcheck && r.statcheck.result === 'DECISION_ERROR';
     var scFail = r.statcheck && r.statcheck.result === 'FAIL';
-    var anyApplicable = (r.grim && r.grim.result !== 'SKIPPED') || (r.sprite && r.sprite.result !== 'SKIPPED') || (r.statcheck && r.statcheck.result !== 'SKIPPED');
+    var anyApplicable = (r.grim && r.grim.result !== 'SKIPPED') || (r.grimmer && r.grimmer.result !== 'SKIPPED') || (r.sprite && r.sprite.result !== 'SKIPPED') || (r.statcheck && r.statcheck.result !== 'SKIPPED');
 
     if (!anyApplicable) {
       r.verdict = 'GREY';
-    } else if (grimFail || spriteFail) {
-      r.verdict = 'SWALLOWED'; // Tier A: conclusive impossibility
+    } else if (grimFail || grimmerFail || spriteFail) {
+      r.verdict = 'SWALLOWED'; // Tier A: conclusive impossibility (GRIM, GRIMMER, SPRITE)
     } else if (scDecisionErr) {
       r.verdict = 'SWALLOWED'; // Tier B: DECISION_ERROR always SWALLOWED per spec
     } else if (scFail) {
@@ -1132,14 +1404,21 @@ function runFullAnalysis(rows) {
   }
   var tdaResult = tdaCheck(digitCounts);
 
+  // -- Benford's Law (dataset-level, Fang 6) --
+  var firstDigits = extractFirstDigits(allNumericValues);
+  var benfordResult = benfordCheck(firstDigits);
+
+  // -- Cross-Study Duplication (dataset-level, Fang 7) --
+  var dupResult = duplicationCheck(rows);
+
   // Store results globally
-  window.asaResults = { studies: results, tda: tdaResult, timestamp: new Date().toISOString() };
+  window.asaResults = { studies: results, tda: tdaResult, benford: benfordResult, duplication: dupResult, timestamp: new Date().toISOString() };
 
   // Render all views
-  renderGauntlet(results, tdaResult);
+  renderGauntlet(results, tdaResult, benfordResult, dupResult);
   renderHeatmap(results, tdaResult);
-  renderReports(results, tdaResult);
-  renderExport(results, tdaResult, rows);
+  renderReports(results, tdaResult, benfordResult, dupResult);
+  renderExport(results, tdaResult, benfordResult, dupResult, rows);
 
   // Switch to Gauntlet tab
   document.querySelector('.tab-btn[data-tab="gauntlet"]').click();
@@ -1182,7 +1461,7 @@ function renderDigitBar(tda) {
   return html;
 }
 
-function renderGauntlet(results, tdaResult) {
+function renderGauntlet(results, tdaResult, benfordResult, dupResult) {
   var area = document.getElementById('gauntlet-area');
 
   var passed = 0, suspicious = 0, swallowed = 0, grey = 0;
@@ -1194,7 +1473,7 @@ function renderGauntlet(results, tdaResult) {
   }
 
   var html = '<h2 style="margin-bottom:4px">The Gauntlet</h2>' +
-    '<p style="color:var(--text-secondary);margin-bottom:16px">Each study passes through the Staff\'s fangs. Illusions are consumed.</p>' +
+    '<p style="color:var(--text-secondary);margin-bottom:16px">Each study passes through the Staff\'s 7 fangs. Illusions are consumed.</p>' +
     '<div style="display:flex;gap:16px;margin-bottom:20px;flex-wrap:wrap">' +
     '<div class="card" style="flex:1;min-width:120px;text-align:center"><div style="font-size:32px;color:var(--green);font-weight:bold">' + passed + '</div><div style="font-size:13px;color:var(--text-secondary)">Passed</div></div>' +
     '<div class="card" style="flex:1;min-width:120px;text-align:center"><div style="font-size:32px;color:var(--amber);font-weight:bold">' + suspicious + '</div><div style="font-size:13px;color:var(--text-secondary)">Suspicious</div></div>' +
@@ -1202,12 +1481,14 @@ function renderGauntlet(results, tdaResult) {
     '<div class="card" style="flex:1;min-width:120px;text-align:center"><div style="font-size:32px;color:var(--grey);font-weight:bold">' + grey + '</div><div style="font-size:13px;color:var(--text-secondary)">Not Assessed</div></div>' +
     '</div>' +
     '<div class="card" style="overflow-x:auto">' +
+    '<h3 style="margin-bottom:8px">Per-Study Fangs (1\u20135)</h3>' +
     '<table style="width:100%;border-collapse:collapse;font-size:13px">' +
     '<thead><tr>' +
     '<th style="padding:8px;text-align:left;border-bottom:2px solid var(--border)">Study</th>' +
-    '<th style="padding:8px;text-align:center;border-bottom:2px solid var(--border);color:var(--red)">Fang 1: GRIM</th>' +
-    '<th style="padding:8px;text-align:center;border-bottom:2px solid var(--border);color:var(--amber)">Fang 2: SPRITE</th>' +
-    '<th style="padding:8px;text-align:center;border-bottom:2px solid var(--border);color:#9b59b6">Fang 3: statcheck</th>' +
+    '<th style="padding:8px;text-align:center;border-bottom:2px solid var(--border);color:var(--red)">1: GRIM</th>' +
+    '<th style="padding:8px;text-align:center;border-bottom:2px solid var(--border);color:var(--amber)">2: SPRITE</th>' +
+    '<th style="padding:8px;text-align:center;border-bottom:2px solid var(--border);color:#9b59b6">3: statcheck</th>' +
+    '<th style="padding:8px;text-align:center;border-bottom:2px solid var(--border);color:#e67e22">5: GRIMMER</th>' +
     '<th style="padding:8px;text-align:center;border-bottom:2px solid var(--border)">Verdict</th>' +
     '</tr></thead><tbody>';
 
@@ -1223,16 +1504,20 @@ function renderGauntlet(results, tdaResult) {
       '<td style="padding:6px 8px;text-align:center">' + fangCell(r.grim) + '</td>' +
       '<td style="padding:6px 8px;text-align:center">' + fangCell(r.sprite) + '</td>' +
       '<td style="padding:6px 8px;text-align:center">' + fangCell(r.statcheck) + '</td>' +
+      '<td style="padding:6px 8px;text-align:center">' + fangCell(r.grimmer) + '</td>' +
       '<td style="padding:6px 8px;text-align:center">' + verdictBadge + '</td>' +
       '</tr>';
   }
 
   html += '</tbody></table></div>';
 
-  // TDA panel
+  // Dataset-level panels
+  html += '<h3 style="margin-top:24px;margin-bottom:12px;color:var(--accent)">Dataset-Level Fangs (4, 6, 7)</h3>';
+
+  // TDA panel (Fang 4)
   var tdaBadgeClass = tdaResult.verdict === 'PASS' ? 'badge-pass' : tdaResult.verdict === 'WARN' ? 'badge-suspicious' : tdaResult.verdict === 'FAIL' ? 'badge-swallowed' : 'badge-skipped';
-  html += '<div class="card" style="margin-top:16px">' +
-    '<h3>Fang 4: Terminal Digit Analysis (Dataset-Level)</h3>' +
+  html += '<div class="card" style="margin-bottom:12px">' +
+    '<h3>Fang 4: Terminal Digit Analysis</h3>' +
     '<p style="color:var(--text-secondary);font-size:13px;margin-bottom:8px">' + tdaResult.explanation + '</p>' +
     '<div style="display:flex;align-items:center;gap:16px">' +
     '<span class="badge ' + tdaBadgeClass + '">' + tdaResult.verdict + '</span>' +
@@ -1241,8 +1526,63 @@ function renderGauntlet(results, tdaResult) {
     (tdaResult.verdict !== 'SKIPPED' ? renderDigitBar(tdaResult) : '') +
     '</div>';
 
+  // Benford panel (Fang 6)
+  var benBadgeClass = benfordResult.verdict === 'PASS' ? 'badge-pass' : benfordResult.verdict === 'WARN' ? 'badge-suspicious' : benfordResult.verdict === 'FAIL' ? 'badge-swallowed' : 'badge-skipped';
+  html += '<div class="card" style="margin-bottom:12px">' +
+    '<h3>Fang 6: Benford\'s Law (First-Digit Distribution)</h3>' +
+    '<p style="color:var(--text-secondary);font-size:13px;margin-bottom:8px">' + benfordResult.explanation + '</p>' +
+    '<div style="display:flex;align-items:center;gap:16px">' +
+    '<span class="badge ' + benBadgeClass + '">' + benfordResult.verdict + '</span>' +
+    (benfordResult.chiSq != null ? '<span style="font-size:13px;color:var(--text-secondary)">\u03c7\u00b2(8) = ' + benfordResult.chiSq.toFixed(2) + ', p = ' + benfordResult.pValue.toFixed(4) + '</span>' : '') +
+    '</div>';
+  if (benfordResult.verdict !== 'SKIPPED' && benfordResult.observed) {
+    // Benford bar chart: observed vs expected
+    var benMax = 0;
+    for (var bi = 0; bi < 9; bi++) { if (benfordResult.observed[bi] > benMax) benMax = benfordResult.observed[bi]; if (benfordResult.expected[bi] > benMax) benMax = benfordResult.expected[bi]; }
+    html += '<div style="display:flex;gap:4px;align-items:flex-end;height:100px;margin-top:12px">';
+    for (var bj = 0; bj < 9; bj++) {
+      var obsH = benMax > 0 ? (benfordResult.observed[bj] / benMax * 70) : 0;
+      var expH = benMax > 0 ? (benfordResult.expected[bj] / benMax * 70) : 0;
+      html += '<div style="flex:1;text-align:center">' +
+        '<div style="display:flex;gap:1px;justify-content:center;align-items:flex-end;height:75px">' +
+        '<div style="width:40%;height:' + obsH + 'px;background:var(--accent);border-radius:2px 2px 0 0" title="Observed: ' + benfordResult.observed[bj] + '"></div>' +
+        '<div style="width:40%;height:' + expH + 'px;background:var(--text-secondary);border-radius:2px 2px 0 0;opacity:0.4" title="Expected: ' + benfordResult.expected[bj].toFixed(1) + '"></div>' +
+        '</div>' +
+        '<div style="font-size:11px;color:var(--text-secondary);margin-top:2px">' + (bj + 1) + '</div>' +
+        '</div>';
+    }
+    html += '</div><div style="font-size:11px;color:var(--text-secondary);margin-top:4px">Gold = observed, grey = Benford expected</div>';
+  }
+  html += '</div>';
+
+  // Duplication panel (Fang 7)
+  var dupBadgeClass = dupResult.verdict === 'PASS' ? 'badge-pass' : dupResult.verdict === 'FAIL' ? 'badge-swallowed' : 'badge-skipped';
+  html += '<div class="card" style="margin-bottom:12px">' +
+    '<h3>Fang 7: Cross-Study Duplication</h3>' +
+    '<p style="color:var(--text-secondary);font-size:13px;margin-bottom:8px">' + dupResult.explanation + '</p>' +
+    '<div style="display:flex;align-items:center;gap:16px;margin-bottom:8px">' +
+    '<span class="badge ' + dupBadgeClass + '">' + dupResult.verdict + '</span>' +
+    '</div>';
+  if (dupResult.flaggedPairs && dupResult.flaggedPairs.length > 0) {
+    html += '<table style="width:100%;border-collapse:collapse;font-size:13px;margin-top:8px">' +
+      '<thead><tr><th style="padding:4px 8px;text-align:left;border-bottom:1px solid var(--border)">Study 1</th>' +
+      '<th style="padding:4px 8px;text-align:left;border-bottom:1px solid var(--border)">Study 2</th>' +
+      '<th style="padding:4px 8px;text-align:left;border-bottom:1px solid var(--border)">Matches</th>' +
+      '<th style="padding:4px 8px;text-align:left;border-bottom:1px solid var(--border)">Identical Fields</th></tr></thead><tbody>';
+    for (var dpi = 0; dpi < dupResult.flaggedPairs.length; dpi++) {
+      var dp = dupResult.flaggedPairs[dpi];
+      html += '<tr style="border-bottom:1px solid var(--border);color:var(--red)">' +
+        '<td style="padding:4px 8px">' + dp.study1 + '</td>' +
+        '<td style="padding:4px 8px">' + dp.study2 + '</td>' +
+        '<td style="padding:4px 8px">' + dp.matches + '/' + dp.compared + '</td>' +
+        '<td style="padding:4px 8px">' + dp.matchedFields.join(', ') + '</td></tr>';
+    }
+    html += '</tbody></table>';
+  }
+  html += '</div>';
+
   html += '<p style="margin-top:16px;font-size:12px;color:var(--text-secondary);font-style:italic">' +
-    'Forensic flags are evidence for investigation, not proof of fraud. GRIM/SPRITE failures prove mathematical impossibility \u2014 but the cause could be transcription error, not fabrication. Always investigate flagged studies before drawing conclusions.' +
+    'Forensic flags are evidence for investigation, not proof of fraud. GRIM/GRIMMER/SPRITE failures prove mathematical impossibility \u2014 but the cause could be transcription error, not fabrication. Always investigate flagged studies before drawing conclusions.' +
     '</p>';
 
   area.innerHTML = html;
@@ -1286,10 +1626,11 @@ function renderHeatmap(results, tdaResult) {
     '<table style="width:100%;border-collapse:collapse;font-size:13px">' +
     '<thead><tr>' +
     '<th style="padding:8px;text-align:left;border-bottom:2px solid var(--border)">Study</th>' +
-    '<th style="padding:8px;text-align:center;border-bottom:2px solid var(--border);width:100px">GRIM</th>' +
-    '<th style="padding:8px;text-align:center;border-bottom:2px solid var(--border);width:100px">SPRITE</th>' +
-    '<th style="padding:8px;text-align:center;border-bottom:2px solid var(--border);width:100px">statcheck</th>' +
-    '<th style="padding:8px;text-align:center;border-bottom:2px solid var(--border);width:100px">Verdict</th>' +
+    '<th style="padding:8px;text-align:center;border-bottom:2px solid var(--border);width:90px">GRIM</th>' +
+    '<th style="padding:8px;text-align:center;border-bottom:2px solid var(--border);width:90px">SPRITE</th>' +
+    '<th style="padding:8px;text-align:center;border-bottom:2px solid var(--border);width:90px">statcheck</th>' +
+    '<th style="padding:8px;text-align:center;border-bottom:2px solid var(--border);width:90px">GRIMMER</th>' +
+    '<th style="padding:8px;text-align:center;border-bottom:2px solid var(--border);width:90px">Verdict</th>' +
     '</tr></thead><tbody>';
 
   for (var i = 0; i < sorted.length; i++) {
@@ -1299,6 +1640,7 @@ function renderHeatmap(results, tdaResult) {
       '<td style="padding:4px">' + heatCell(r.grim, r.study, 'GRIM') + '</td>' +
       '<td style="padding:4px">' + heatCell(r.sprite, r.study, 'SPRITE') + '</td>' +
       '<td style="padding:4px">' + heatCell(r.statcheck, r.study, 'statcheck') + '</td>' +
+      '<td style="padding:4px">' + heatCell(r.grimmer, r.study, 'GRIMMER') + '</td>' +
       '<td style="padding:6px 8px;text-align:center">' + verdictBadgeHtml(r.verdict) + '</td>' +
       '</tr>';
   }
@@ -1338,7 +1680,7 @@ function reportFang(title, fangResult) {
     '</div>';
 }
 
-function renderReports(results, tdaResult) {
+function renderReports(results, tdaResult, benfordResult, dupResult) {
   var area = document.getElementById('reports-area');
   var html = '<h2 style="margin-bottom:4px">Forensic Reports</h2>' +
     '<p style="color:var(--text-secondary);margin-bottom:12px">Detailed per-study forensic analysis. Click to expand.</p>' +
@@ -1359,9 +1701,25 @@ function renderReports(results, tdaResult) {
       reportFang('Fang 1: GRIM', r.grim) +
       reportFang('Fang 2: SPRITE', r.sprite) +
       reportFang('Fang 3: statcheck', r.statcheck) +
+      reportFang('Fang 5: GRIMMER', r.grimmer) +
       '</div>' +
       '</div>';
   }
+
+  // Dataset-level reports
+  html += '<div class="card" style="margin-top:16px"><h3 style="color:var(--accent);margin-bottom:8px">Dataset-Level Analyses</h3>' +
+    reportFang('Fang 4: TDA', { result: tdaResult.verdict, explanation: tdaResult.explanation }) +
+    reportFang('Fang 6: Benford\'s Law', { result: benfordResult.verdict, explanation: benfordResult.explanation }) +
+    reportFang('Fang 7: Cross-Study Duplication', { result: dupResult.verdict, explanation: dupResult.explanation });
+  if (dupResult.flaggedPairs && dupResult.flaggedPairs.length > 0) {
+    html += '<div style="padding:8px;margin-bottom:8px;border-left:3px solid var(--red);padding-left:12px;color:var(--text-secondary)">';
+    for (var dri = 0; dri < dupResult.flaggedPairs.length; dri++) {
+      var drp = dupResult.flaggedPairs[dri];
+      html += '<div>' + drp.study1 + ' \u2194 ' + drp.study2 + ': ' + drp.explanation + '</div>';
+    }
+    html += '</div>';
+  }
+  html += '</div>';
 
   area.innerHTML = html;
 
@@ -1408,7 +1766,7 @@ function downloadFile(content, filename, type) {
   URL.revokeObjectURL(url);
 }
 
-function renderExport(results, tdaResult, originalRows) {
+function renderExport(results, tdaResult, benfordResult, dupResult, originalRows) {
   var area = document.getElementById('export-area');
   area.innerHTML = '<h2 style="margin-bottom:4px">Export</h2>' +
     '<p style="color:var(--text-secondary);margin-bottom:16px">Download cleaned data, flagged studies, or the full forensic receipt.</p>' +
@@ -1437,7 +1795,9 @@ function renderExport(results, tdaResult, originalRows) {
       studyCount: results.length,
       verdicts: { passed: passed, suspicious: suspicious, swallowed: swallowed, notAssessed: notAssessed },
       tda: { verdict: tdaResult.verdict, chiSq: tdaResult.chiSq, pValue: tdaResult.pValue },
-      perStudy: results.map(function(r) { return { study: r.study, verdict: r.verdict, grim: r.grim ? r.grim.result : null, sprite: r.sprite ? r.sprite.result : null, statcheck: r.statcheck ? r.statcheck.result : null }; })
+      benford: { verdict: benfordResult.verdict, chiSq: benfordResult.chiSq, pValue: benfordResult.pValue },
+      duplication: { verdict: dupResult.verdict, flaggedPairs: dupResult.flaggedPairs ? dupResult.flaggedPairs.length : 0 },
+      perStudy: results.map(function(r) { return { study: r.study, verdict: r.verdict, grim: r.grim ? r.grim.result : null, grimmer: r.grimmer ? r.grimmer.result : null, sprite: r.sprite ? r.sprite.result : null, statcheck: r.statcheck ? r.statcheck.result : null }; })
     };
     var el = document.getElementById('receiptContent');
     if (el) el.textContent = JSON.stringify(receipt, null, 2);
@@ -1446,17 +1806,18 @@ function renderExport(results, tdaResult, originalRows) {
 
   // CSV export
   document.getElementById('exportCleanCSV').addEventListener('click', function() {
-    var header = 'study,grim_result,sprite_result,statcheck_result,overall_verdict';
+    var header = 'study,grim_result,grimmer_result,sprite_result,statcheck_result,overall_verdict';
     var lines = results.map(function(r) {
-      return [r.study, r.grim ? r.grim.result : '', r.sprite ? r.sprite.result : '', r.statcheck ? r.statcheck.result : '', r.verdict].join(',');
+      return [r.study, r.grim ? r.grim.result : '', r.grimmer ? r.grimmer.result : '', r.sprite ? r.sprite.result : '', r.statcheck ? r.statcheck.result : '', r.verdict].join(',');
     });
     downloadFile(header + '\n' + lines.join('\n'), 'asa_results.csv', 'text/csv');
   });
   document.getElementById('exportFlaggedCSV').addEventListener('click', function() {
     var flagged = results.filter(function(r) { return r.verdict === 'SUSPICIOUS' || r.verdict === 'SWALLOWED'; });
-    var header = 'study,grim_result,grim_explanation,sprite_result,statcheck_result,statcheck_explanation,verdict';
+    var header = 'study,grim_result,grim_explanation,grimmer_result,grimmer_explanation,sprite_result,statcheck_result,statcheck_explanation,verdict';
     var lines = flagged.map(function(r) {
       return [r.study, r.grim ? r.grim.result : '', '"' + ((r.grim ? r.grim.explanation : '') || '').replace(/"/g,'""') + '"',
+        r.grimmer ? r.grimmer.result : '', '"' + ((r.grimmer ? r.grimmer.explanation : '') || '').replace(/"/g,'""') + '"',
         r.sprite ? r.sprite.result : '', r.statcheck ? r.statcheck.result : '',
         '"' + ((r.statcheck ? r.statcheck.explanation : '') || '').replace(/"/g,'""') + '"',
         r.verdict].join(',');

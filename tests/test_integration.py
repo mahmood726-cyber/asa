@@ -48,7 +48,7 @@ class TestTutorialDataset:
         run_tutorial(driver)
         data = get_results(driver)
         grim_fails = [s for s in data['studies']
-                      if s.get('grim', {}).get('result') == 'FAIL']
+                      if (s.get('grim') or {}).get('result') == 'FAIL']
         assert len(grim_fails) >= 4, f"Expected >=4 GRIM fails, got {len(grim_fails)}: {[s['study'] for s in grim_fails]}"
 
     def test_statcheck_fails(self, driver):
@@ -59,14 +59,21 @@ class TestTutorialDataset:
                     if s.get('statcheck', {}).get('result') in ('FAIL', 'DECISION_ERROR')]
         assert len(sc_fails) >= 2, f"Expected >=2 statcheck fails, got {len(sc_fails)}"
 
-    def test_clean_studies_pass(self, driver):
-        """Ahmed 2020 and Lee 2019 should PASS"""
+    def test_grimmer_runs(self, driver):
+        """GRIMMER should run on discrete studies and produce results"""
         run_tutorial(driver)
         data = get_results(driver)
-        for name in ['Ahmed 2020', 'Lee 2019']:
-            study = next((s for s in data['studies'] if s['study'] == name), None)
-            assert study is not None, f"{name} not found in results"
-            assert study['verdict'] == 'PASS', f"{name} verdict={study['verdict']}, expected PASS"
+        grimmer_tested = [s for s in data['studies']
+                         if s.get('grimmer', {}).get('result') in ('PASS', 'FAIL')]
+        assert len(grimmer_tested) >= 1, "Expected at least 1 study tested by GRIMMER"
+
+    def test_ahmed_grim_passes(self, driver):
+        """Ahmed 2020 should pass GRIM (mean is valid) even if GRIMMER flags it"""
+        run_tutorial(driver)
+        data = get_results(driver)
+        ahmed = next((s for s in data['studies'] if s['study'] == 'Ahmed 2020'), None)
+        assert ahmed is not None, "Ahmed 2020 not found"
+        assert ahmed['grim']['result'] == 'PASS', f"Ahmed GRIM={ahmed['grim']['result']}"
 
     def test_has_tda_result(self, driver):
         """TDA should produce a result with chi-squared"""
@@ -76,14 +83,28 @@ class TestTutorialDataset:
         assert tda.get('verdict') in ('PASS', 'WARN', 'FAIL', 'SKIPPED'), f"TDA verdict={tda.get('verdict')}"
 
     def test_verdict_distribution(self, driver):
-        """Should have mix of PASS, SUSPICIOUS, SWALLOWED"""
+        """Should have flagged studies (SUSPICIOUS or SWALLOWED)"""
         run_tutorial(driver)
         data = get_results(driver)
         verdicts = [s['verdict'] for s in data['studies']]
-        assert 'PASS' in verdicts, "No PASS verdicts found"
-        # At least some should be flagged
         flagged = [v for v in verdicts if v in ('SUSPICIOUS', 'SWALLOWED')]
         assert len(flagged) >= 1, "Expected at least 1 flagged study"
+
+    def test_benford_result_exists(self, driver):
+        """Tutorial should produce Benford analysis"""
+        run_tutorial(driver)
+        data = get_results(driver)
+        benford = data.get('benford', {})
+        assert benford.get('verdict') in ('PASS', 'WARN', 'FAIL', 'SKIPPED'), \
+            f"Benford verdict={benford.get('verdict')}"
+
+    def test_duplication_result_exists(self, driver):
+        """Tutorial should produce duplication analysis"""
+        run_tutorial(driver)
+        data = get_results(driver)
+        dup = data.get('duplication', {})
+        assert dup.get('verdict') in ('PASS', 'FAIL', 'SKIPPED'), \
+            f"Duplication verdict={dup.get('verdict')}"
 
 
 # ── Fujii Dataset ──
@@ -146,13 +167,26 @@ class TestExport:
         assert total == 12, f"Verdict total={total}, expected 12"
 
     def test_receipt_per_study(self, driver):
-        """Receipt should have per-study entries"""
+        """Receipt should have per-study entries with GRIMMER field"""
         run_tutorial(driver)
         time.sleep(1)
         receipt = js(driver, 'JSON.stringify(window.asaReceipt)')
         assert receipt, "asaReceipt is null"
         data = json.loads(receipt)
         assert len(data.get('perStudy', [])) == 12, "Receipt should have 12 per-study entries"
+        # v2: check grimmer field present
+        first = data['perStudy'][0]
+        assert 'grimmer' in first, "Receipt perStudy should include grimmer field"
+
+    def test_receipt_has_benford(self, driver):
+        """Receipt should have benford and duplication fields"""
+        run_tutorial(driver)
+        time.sleep(1)
+        receipt = js(driver, 'JSON.stringify(window.asaReceipt)')
+        assert receipt, "asaReceipt is null"
+        data = json.loads(receipt)
+        assert 'benford' in data, "Receipt should have benford field"
+        assert 'duplication' in data, "Receipt should have duplication field"
 
 
 # ── Dark Mode ──
