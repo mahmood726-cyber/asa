@@ -51,7 +51,7 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); line
 .btn-danger { background: var(--red); color: #fff; border-color: var(--red); }
 /* === Verdict badges === */
 .badge { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 12px; font-weight: 600; }
-.badge-pass { background: rgba(46,160,67,0.15); color: var(--green); }
+.badge-pass { background: rgba(46,160,67,0.2); color: #3fb950; }
 .badge-suspicious { background: rgba(210,153,34,0.15); color: var(--amber); }
 .badge-swallowed { background: rgba(248,81,73,0.15); color: var(--red); }
 .badge-skipped { background: rgba(72,79,88,0.15); color: var(--grey); }
@@ -81,7 +81,7 @@ textarea:focus-visible, .report-card:focus-visible, .heat-cell:focus-visible {
 <!-- Header -->
 <div class="header" style="position:relative">
   <h1>&#x639;&#x635;&#x627; &#x645;&#x648;&#x633;&#x649; &#x2014; Asa</h1>
-  <div class="verse">&#x641;&#x648;&#x642;&#x639; &#x627;&#x644;&#x62D;&#x642; &#x648;&#x628;&#x637;&#x644; &#x645;&#x627; &#x643;&#x627;&#x646;&#x648;&#x627; &#x64A;&#x639;&#x645;&#x644;&#x648;&#x646; &#x2014; &#x37;:&#x31;&#x31;&#x37;</div>
+  <div class="verse" lang="ar">&#x641;&#x648;&#x642;&#x639; &#x627;&#x644;&#x62D;&#x642; &#x648;&#x628;&#x637;&#x644; &#x645;&#x627; &#x643;&#x627;&#x646;&#x648;&#x627; &#x64A;&#x639;&#x645;&#x644;&#x648;&#x646; &#x2014; &#x37;:&#x31;&#x31;&#x37;</div>
   <div class="subtitle">Forensic Data Integrity Screener for Meta-Analysis &middot; v2.0.0</div>
   <div class="header-controls">
     <button id="themeToggle" title="Toggle light/dark mode">&#x2600;</button>
@@ -131,7 +131,7 @@ textarea:focus-visible, .report-card:focus-visible, .heat-cell:focus-visible {
 <!-- Tab 6: About -->
 <div class="tab-content" id="tab-about" data-tab="about" role="tabpanel" aria-labelledby="btn-about">
   <h2 style="margin-bottom:4px">About Asa</h2>
-  <p style="color:var(--text-secondary);margin-bottom:16px;font-style:italic;direction:rtl">
+  <p style="color:var(--text-secondary);margin-bottom:16px;font-style:italic;direction:rtl" lang="ar">
     &#x641;&#x648;&#x642;&#x639; &#x627;&#x644;&#x62D;&#x642; &#x648;&#x628;&#x637;&#x644; &#x645;&#x627; &#x643;&#x627;&#x646;&#x648;&#x627; &#x64A;&#x639;&#x645;&#x644;&#x648;&#x646;
   </p>
   <p style="color:var(--text-secondary);margin-bottom:24px">
@@ -208,7 +208,7 @@ textarea:focus-visible, .report-card:focus-visible, .heat-cell:focus-visible {
   <div class="card" style="margin-bottom:12px">
     <h3 style="color:var(--accent);margin-bottom:8px">Fang 4: Terminal Digit Analysis (TDA)</h3>
     <p style="margin-bottom:8px">TDA examines the distribution of last digits across all numeric values in the dataset. In authentic data, terminal digits are approximately uniformly distributed (each digit 0&ndash;9 appears ~10% of the time). Fabricated data often shows non-uniform patterns, detectable via a &chi;&sup2; goodness-of-fit test.</p>
-    <p style="margin-bottom:4px;font-size:13px"><strong>Applicability:</strong> Dataset-level. Requires &ge;20 numeric values for reliable &chi;&sup2; (df=9). Fewer values produce a SKIP.</p>
+    <p style="margin-bottom:4px;font-size:13px"><strong>Applicability:</strong> Dataset-level. Requires &ge;50 numeric values for reliable &chi;&sup2; (df=9, expected count &ge;5 per cell). Fewer values produce a SKIP.</p>
     <p style="font-size:13px;color:var(--text-secondary)">Mosimann, J. E., Wiseman, C. V., &amp; Edelman, R. E. (1995). Data fabrication: Can people generate random digits? <em>Accountability in Research</em>, 4(1), 31&ndash;46.</p>
   </div>
 
@@ -239,7 +239,7 @@ textarea:focus-visible, .report-card:focus-visible, .heat-cell:focus-visible {
   <div class="card" style="margin-bottom:12px">
     <h3 style="color:var(--accent);margin-bottom:8px">Technical Details</h3>
     <p style="margin-bottom:6px"><strong>Math library:</strong> Pure JavaScript implementations of the standard normal CDF (Abramowitz &amp; Stegun 26.2.17), regularized incomplete beta function (Lentz continued fraction from Numerical Recipes), and derived t/F/&chi;&sup2; CDFs. Validated against R's <code>pnorm</code>, <code>pt</code>, <code>pf</code>, <code>pchisq</code> to &lt;0.001 tolerance.</p>
-    <p style="margin-bottom:6px"><strong>SPRITE engine:</strong> Seeded xoshiro128** PRNG for deterministic reconstruction (default 10,000 iterations). Uses swap-based optimization starting from a uniform initialization.</p>
+    <p style="margin-bottom:6px"><strong>SPRITE engine:</strong> Seeded xoshiro128** PRNG for deterministic reconstruction (default 10,000 iterations). Generates constrained random datasets matching the target mean, then checks if the SD matches within rounding tolerance.</p>
     <p style="margin-bottom:6px"><strong>TruthCert:</strong> Export bundles include a SHA-256 content hash over all input data + results, ensuring tamper-evident provenance. The hash covers raw inputs, settings, and every fang result.</p>
     <p><strong>Privacy:</strong> All computations run entirely in-browser. No data is transmitted to any server. localStorage is used only for user preferences (dark mode, default settings).</p>
   </div>
@@ -284,7 +284,7 @@ textarea:focus-visible, .report-card:focus-visible, .heat-cell:focus-visible {
 <script>
 'use strict';
 /* ============================================================
-   ASA v1.0.0 -- Forensic Data Integrity Screener
+   ASA v2.0.0 -- Forensic Data Integrity Screener
    ============================================================ */
 
 const ASA_VERSION = '2.0.0';
@@ -489,32 +489,6 @@ function pnorm(x) {
   return 0.5 * (1 + sign * erf);
 }
 
-function qnorm(p) {
-  if (p <= 0) return -Infinity;
-  if (p >= 1) return Infinity;
-  if (p === 0.5) return 0;
-  // Rational approximation (Peter Acklam)
-  var a = [-3.969683028665376e+01,2.209460984245205e+02,-2.759285104469687e+02,
-    1.383577518672690e+02,-3.066479806614716e+01,2.506628277459239e+00];
-  var b = [-5.447609879822406e+01,1.615858368580409e+02,-1.556989798598866e+02,
-    6.680131188771972e+01,-1.328068155288572e+01];
-  var c = [-7.784894002430293e-03,-3.223964580411365e-01,-2.400758277161838e+00,
-    -2.549732539343734e+00,4.374664141464968e+00,2.938163982698783e+00];
-  var d = [7.784695709041462e-03,3.224671290700398e-01,2.445134137142996e+00,3.754408661907416e+00];
-  var pLow = 0.02425, pHigh = 1 - pLow;
-  var q, r;
-  if (p < pLow) {
-    q = Math.sqrt(-2 * Math.log(p));
-    return (((((c[0]*q+c[1])*q+c[2])*q+c[3])*q+c[4])*q+c[5]) / ((((d[0]*q+d[1])*q+d[2])*q+d[3])*q+1);
-  } else if (p <= pHigh) {
-    q = p - 0.5; r = q * q;
-    return (((((a[0]*r+a[1])*r+a[2])*r+a[3])*r+a[4])*r+a[5])*q / (((((b[0]*r+b[1])*r+b[2])*r+b[3])*r+b[4])*r+1);
-  } else {
-    q = Math.sqrt(-2 * Math.log(1 - p));
-    return -(((((c[0]*q+c[1])*q+c[2])*q+c[3])*q+c[4])*q+c[5]) / ((((d[0]*q+d[1])*q+d[2])*q+d[3])*q+1);
-  }
-}
-
 function pt(t, df) {
   if (df <= 0) return NaN;
   if (!isFinite(t)) return t > 0 ? 1 : 0;
@@ -608,7 +582,7 @@ function grimmerCheck(sd, n, mean, items, decimals) {
     // Must be non-negative integer
     if (scaled < -1e-6) return false;
     var remainder = Math.abs(scaled - Math.round(scaled));
-    return remainder < 0.01; // generous tolerance for float arithmetic
+    return remainder < 0.008; // tolerance for float arithmetic (accommodates rounding cascade)
   }
 
   // Check with rounding: reported SD could be rounded up or down
@@ -805,6 +779,7 @@ function statcheckVerify(statType, statValue, df1, df2, pReported, tailed) {
     for (var ti = 0; ti < thresholds.length; ti++) {
       var th = thresholds[ti];
       if ((pTarget < th && pComputed >= th) || (pTarget >= th && pComputed < th)) {
+        // Guard: ignore threshold crossings within 0.001 dead-zone to avoid flagging rounding artifacts
         if (Math.abs(pTarget - th) > 0.001 || Math.abs(pComputed - th) > 0.001) {
           decisionError = true;
           explanation += ' -- DECISION ERROR: crosses ' + th + ' threshold';
@@ -819,7 +794,7 @@ function statcheckVerify(statType, statValue, df1, df2, pReported, tailed) {
 
 /* ============================================================
    FANG 4: Terminal Digit Analysis (dataset-level)
-   Mosimann et al. (2002). Chi-squared uniformity test.
+   Mosimann et al. (1995). Chi-squared uniformity test.
    ============================================================ */
 
 function extractTerminalDigits(values) {
@@ -1490,14 +1465,33 @@ function runFullAnalysis(rows) {
   // -- Cross-Study Duplication (dataset-level, Fang 7) --
   var dupResult = duplicationCheck(rows);
 
+  // -- Forensic Integrity Score (FIS) --
+  // 0-100 scale: 100 = all clean, 0 = all flagged. Weighted by tier severity.
+  var fisTotal = 0, fisMax = 0;
+  for (var fi = 0; fi < results.length; fi++) {
+    var fv = results[fi].verdict;
+    fisMax += 3; // max per study
+    if (fv === 'PASS') fisTotal += 3;
+    else if (fv === 'SUSPICIOUS') fisTotal += 1;
+    // SWALLOWED = 0, GREY = excluded
+    if (fv === 'GREY') fisMax -= 3;
+  }
+  // Dataset-level penalties
+  if (tdaResult.verdict === 'FAIL') { fisTotal -= 2; }
+  else if (tdaResult.verdict === 'WARN') { fisTotal -= 1; }
+  if (benfordResult.verdict === 'FAIL') { fisTotal -= 2; }
+  else if (benfordResult.verdict === 'WARN') { fisTotal -= 1; }
+  if (dupResult.verdict === 'FAIL') { fisTotal -= 3; }
+  var fis = fisMax > 0 ? Math.max(0, Math.min(100, Math.round(fisTotal / fisMax * 100))) : null;
+
   // Store results globally
-  window.asaResults = { studies: results, tda: tdaResult, benford: benfordResult, duplication: dupResult, timestamp: new Date().toISOString() };
+  window.asaResults = { studies: results, tda: tdaResult, benford: benfordResult, duplication: dupResult, fis: fis, timestamp: new Date().toISOString() };
 
   // Render all views
-  renderGauntlet(results, tdaResult, benfordResult, dupResult);
+  renderGauntlet(results, tdaResult, benfordResult, dupResult, fis);
   renderHeatmap(results, tdaResult);
   renderReports(results, tdaResult, benfordResult, dupResult);
-  renderExport(results, tdaResult, benfordResult, dupResult, rows);
+  renderExport(results, tdaResult, benfordResult, dupResult, fis, rows);
 
   // Switch to Gauntlet tab
   document.querySelector('.tab-btn[data-tab="gauntlet"]').click();
@@ -1540,7 +1534,7 @@ function renderDigitBar(tda) {
   return html;
 }
 
-function renderGauntlet(results, tdaResult, benfordResult, dupResult) {
+function renderGauntlet(results, tdaResult, benfordResult, dupResult, fis) {
   var area = document.getElementById('gauntlet-area');
 
   var passed = 0, suspicious = 0, swallowed = 0, grey = 0;
@@ -1558,16 +1552,17 @@ function renderGauntlet(results, tdaResult, benfordResult, dupResult) {
     '<div class="card" style="flex:1;min-width:120px;text-align:center"><div style="font-size:32px;color:var(--amber);font-weight:bold">' + suspicious + '</div><div style="font-size:13px;color:var(--text-secondary)">Suspicious</div></div>' +
     '<div class="card" style="flex:1;min-width:120px;text-align:center"><div style="font-size:32px;color:var(--red);font-weight:bold">' + swallowed + '</div><div style="font-size:13px;color:var(--text-secondary)">Swallowed</div></div>' +
     '<div class="card" style="flex:1;min-width:120px;text-align:center"><div style="font-size:32px;color:var(--grey);font-weight:bold">' + grey + '</div><div style="font-size:13px;color:var(--text-secondary)">Not Assessed</div></div>' +
+    (fis !== null ? '<div class="card" style="flex:1;min-width:140px;text-align:center;border-color:' + (fis >= 80 ? 'var(--green)' : fis >= 50 ? 'var(--amber)' : 'var(--red)') + '"><div style="font-size:32px;color:' + (fis >= 80 ? 'var(--green)' : fis >= 50 ? 'var(--amber)' : 'var(--red)') + ';font-weight:bold">' + fis + '</div><div style="font-size:13px;color:var(--text-secondary)">Forensic Integrity Score</div><div style="font-size:11px;color:var(--text-secondary)">' + (fis >= 80 ? 'High integrity' : fis >= 50 ? 'Moderate concerns' : 'Serious concerns') + '</div></div>' : '') +
     '</div>' +
     '<div class="card" style="overflow-x:auto">' +
     '<h3 style="margin-bottom:8px">Per-Study Fangs (1\u20135)</h3>' +
     '<table style="width:100%;border-collapse:collapse;font-size:13px">' +
     '<thead><tr>' +
     '<th style="padding:8px;text-align:left;border-bottom:2px solid var(--border)">Study</th>' +
-    '<th style="padding:8px;text-align:center;border-bottom:2px solid var(--border);color:var(--red)">1: GRIM</th>' +
-    '<th style="padding:8px;text-align:center;border-bottom:2px solid var(--border);color:var(--amber)">2: SPRITE</th>' +
-    '<th style="padding:8px;text-align:center;border-bottom:2px solid var(--border);color:#9b59b6">3: statcheck</th>' +
-    '<th style="padding:8px;text-align:center;border-bottom:2px solid var(--border);color:#e67e22">5: GRIMMER</th>' +
+    '<th style="padding:8px;text-align:center;border-bottom:2px solid var(--border);color:var(--red)">GRIM</th>' +
+    '<th style="padding:8px;text-align:center;border-bottom:2px solid var(--border);color:#e67e22">GRIMMER</th>' +
+    '<th style="padding:8px;text-align:center;border-bottom:2px solid var(--border);color:var(--amber)">SPRITE</th>' +
+    '<th style="padding:8px;text-align:center;border-bottom:2px solid var(--border);color:#9b59b6">statcheck</th>' +
     '<th style="padding:8px;text-align:center;border-bottom:2px solid var(--border)">Verdict</th>' +
     '</tr></thead><tbody>';
 
@@ -1581,9 +1576,9 @@ function renderGauntlet(results, tdaResult, benfordResult, dupResult) {
     html += '<tr style="border-bottom:1px solid var(--border)' + (r.verdict === 'SWALLOWED' ? ';opacity:0.6;text-decoration:line-through' : '') + '">' +
       '<td style="padding:6px 8px;font-weight:500">' + escapeAttr(r.study) + '</td>' +
       '<td style="padding:6px 8px;text-align:center">' + fangCell(r.grim) + '</td>' +
+      '<td style="padding:6px 8px;text-align:center">' + fangCell(r.grimmer) + '</td>' +
       '<td style="padding:6px 8px;text-align:center">' + fangCell(r.sprite) + '</td>' +
       '<td style="padding:6px 8px;text-align:center">' + fangCell(r.statcheck) + '</td>' +
-      '<td style="padding:6px 8px;text-align:center">' + fangCell(r.grimmer) + '</td>' +
       '<td style="padding:6px 8px;text-align:center">' + verdictBadge + '</td>' +
       '</tr>';
   }
@@ -1591,7 +1586,7 @@ function renderGauntlet(results, tdaResult, benfordResult, dupResult) {
   html += '</tbody></table></div>';
 
   // Dataset-level panels
-  html += '<h3 style="margin-top:24px;margin-bottom:12px;color:var(--accent)">Dataset-Level Fangs (4, 6, 7)</h3>';
+  html += '<h3 style="margin-top:24px;margin-bottom:12px;color:var(--accent)">Dataset-Level Analyses</h3>';
 
   // TDA panel (Fang 4)
   var tdaBadgeClass = tdaResult.verdict === 'PASS' ? 'badge-pass' : tdaResult.verdict === 'WARN' ? 'badge-suspicious' : tdaResult.verdict === 'FAIL' ? 'badge-swallowed' : 'badge-skipped';
@@ -1676,7 +1671,7 @@ function verdictBadgeHtml(verdict) {
   return '<span class="badge ' + (map[verdict] || 'badge-skipped') + '">' + verdict + '</span>';
 }
 
-function heatCell(fangResult, study, fang) {
+function heatCell(fangResult) {
   if (!fangResult) return '<div style="background:var(--grey);border-radius:4px;padding:6px;text-align:center;color:#fff;font-size:11px">\u2014</div>';
   var colors = { PASS: 'var(--green)', FAIL: 'var(--red)', DECISION_ERROR: 'var(--red)', SKIPPED: 'var(--grey)', WARN: 'var(--amber)' };
   var color = colors[fangResult.result] || 'var(--grey)';
@@ -1706,9 +1701,9 @@ function renderHeatmap(results, tdaResult) {
     '<thead><tr>' +
     '<th style="padding:8px;text-align:left;border-bottom:2px solid var(--border)">Study</th>' +
     '<th style="padding:8px;text-align:center;border-bottom:2px solid var(--border);width:90px">GRIM</th>' +
+    '<th style="padding:8px;text-align:center;border-bottom:2px solid var(--border);width:90px">GRIMMER</th>' +
     '<th style="padding:8px;text-align:center;border-bottom:2px solid var(--border);width:90px">SPRITE</th>' +
     '<th style="padding:8px;text-align:center;border-bottom:2px solid var(--border);width:90px">statcheck</th>' +
-    '<th style="padding:8px;text-align:center;border-bottom:2px solid var(--border);width:90px">GRIMMER</th>' +
     '<th style="padding:8px;text-align:center;border-bottom:2px solid var(--border);width:90px">Verdict</th>' +
     '</tr></thead><tbody>';
 
@@ -1716,10 +1711,10 @@ function renderHeatmap(results, tdaResult) {
     var r = sorted[i];
     html += '<tr style="border-bottom:1px solid var(--border)">' +
       '<td style="padding:6px 8px">' + escapeAttr(r.study) + '</td>' +
-      '<td style="padding:4px">' + heatCell(r.grim, r.study, 'GRIM') + '</td>' +
-      '<td style="padding:4px">' + heatCell(r.sprite, r.study, 'SPRITE') + '</td>' +
-      '<td style="padding:4px">' + heatCell(r.statcheck, r.study, 'statcheck') + '</td>' +
-      '<td style="padding:4px">' + heatCell(r.grimmer, r.study, 'GRIMMER') + '</td>' +
+      '<td style="padding:4px">' + heatCell(r.grim) + '</td>' +
+      '<td style="padding:4px">' + heatCell(r.grimmer) + '</td>' +
+      '<td style="padding:4px">' + heatCell(r.sprite) + '</td>' +
+      '<td style="padding:4px">' + heatCell(r.statcheck) + '</td>' +
       '<td style="padding:6px 8px;text-align:center">' + verdictBadgeHtml(r.verdict) + '</td>' +
       '</tr>';
   }
@@ -1772,7 +1767,7 @@ function renderReports(results, tdaResult, benfordResult, dupResult) {
   for (var ri = 0; ri < results.length; ri++) {
     var r = results[ri];
     html += '<div class="card report-card" data-study="' + escapeAttr(r.study) + '" style="cursor:pointer">' +
-      '<div class="report-header" style="display:flex;justify-content:space-between;align-items:center">' +
+      '<div class="report-header" role="button" tabindex="0" style="display:flex;justify-content:space-between;align-items:center">' +
       '<span style="font-weight:600">' + escapeAttr(r.study) + '</span>' +
       verdictBadgeHtml(r.verdict) +
       '</div>' +
@@ -1804,9 +1799,13 @@ function renderReports(results, tdaResult, benfordResult, dupResult) {
 
   // Accordion
   area.querySelectorAll('.report-header').forEach(function(h) {
-    h.addEventListener('click', function() {
+    function toggleReport() {
       var body = h.nextElementSibling;
       body.style.display = body.style.display === 'none' ? 'block' : 'none';
+    }
+    h.addEventListener('click', toggleReport);
+    h.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleReport(); }
     });
   });
   document.getElementById('expandAllBtn').addEventListener('click', function() {
@@ -1862,7 +1861,7 @@ function downloadFile(content, filename, type) {
   URL.revokeObjectURL(url);
 }
 
-function renderExport(results, tdaResult, benfordResult, dupResult, originalRows) {
+function renderExport(results, tdaResult, benfordResult, dupResult, fis, originalRows) {
   var area = document.getElementById('export-area');
   area.innerHTML = '<h2 style="margin-bottom:4px">Export</h2>' +
     '<p style="color:var(--text-secondary);margin-bottom:16px">Download cleaned data, flagged studies, or the full forensic receipt.</p>' +
@@ -1893,6 +1892,7 @@ function renderExport(results, tdaResult, benfordResult, dupResult, originalRows
       tda: { verdict: tdaResult.verdict, chiSq: tdaResult.chiSq, pValue: tdaResult.pValue },
       benford: { verdict: benfordResult.verdict, chiSq: benfordResult.chiSq, pValue: benfordResult.pValue },
       duplication: { verdict: dupResult.verdict, flaggedPairs: dupResult.flaggedPairs ? dupResult.flaggedPairs.length : 0 },
+      forensicIntegrityScore: fis,
       perStudy: results.map(function(r) { return { study: r.study, verdict: r.verdict, grim: r.grim ? r.grim.result : null, grimmer: r.grimmer ? r.grimmer.result : null, sprite: r.sprite ? r.sprite.result : null, statcheck: r.statcheck ? r.statcheck.result : null }; })
     };
     var el = document.getElementById('receiptContent');
