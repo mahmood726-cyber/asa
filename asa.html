@@ -1,0 +1,1473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Asa &#x2014; &#x639;&#x635;&#x627; &#x645;&#x648;&#x633;&#x649; &#x2014; Forensic Data Integrity Screener</title>
+<style>
+/* === CSS Variables === */
+:root {
+  --bg: #0d1117; --bg-card: #161b22; --bg-hover: #1c2128;
+  --text: #e6edf3; --text-secondary: #8b949e; --border: #30363d;
+  --green: #2ea043; --amber: #d29922; --red: #f85149; --grey: #484f58;
+  --accent: #d4a574; --accent-glow: rgba(212,165,116,0.3);
+  --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+  --font-mono: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+}
+body.light {
+  --bg: #ffffff; --bg-card: #f6f8fa; --bg-hover: #eef1f5;
+  --text: #1f2328; --text-secondary: #656d76; --border: #d0d7de;
+  --accent-glow: rgba(212,165,116,0.15);
+}
+/* === Reset + Base === */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font); background: var(--bg); color: var(--text); line-height: 1.6; }
+/* === Header === */
+.header { text-align: center; padding: 24px 16px 8px; border-bottom: 1px solid var(--border); }
+.header h1 { font-size: 28px; color: var(--accent); margin-bottom: 4px; }
+.header .verse { font-size: 14px; color: var(--text-secondary); font-style: italic; direction: rtl; }
+.header .subtitle { font-size: 13px; color: var(--text-secondary); margin-top: 4px; }
+.header-controls { position: absolute; top: 16px; right: 16px; display: flex; gap: 8px; }
+.header-controls button { background: none; border: 1px solid var(--border); color: var(--text-secondary);
+  padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 13px; }
+.header-controls button:hover { background: var(--bg-hover); color: var(--text); }
+/* === Tabs === */
+.tab-bar { display: flex; border-bottom: 1px solid var(--border); padding: 0 16px; overflow-x: auto; }
+.tab-btn { padding: 10px 20px; background: none; border: none; color: var(--text-secondary);
+  cursor: pointer; font-size: 14px; border-bottom: 2px solid transparent; white-space: nowrap; }
+.tab-btn:hover { color: var(--text); }
+.tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+.tab-content { display: none; padding: 24px; max-width: 1200px; margin: 0 auto; }
+.tab-content.active { display: block; }
+/* === Cards === */
+.card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 16px; margin-bottom: 12px; }
+/* === Buttons === */
+.btn { padding: 8px 16px; border-radius: 6px; border: 1px solid var(--border); cursor: pointer;
+  font-size: 14px; font-family: var(--font); transition: background 0.15s; }
+.btn-primary { background: var(--accent); color: #000; border-color: var(--accent); font-weight: 600; }
+.btn-primary:hover { filter: brightness(1.1); }
+.btn-secondary { background: var(--bg-card); color: var(--text); }
+.btn-secondary:hover { background: var(--bg-hover); }
+.btn-danger { background: var(--red); color: #fff; border-color: var(--red); }
+/* === Verdict badges === */
+.badge { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 12px; font-weight: 600; }
+.badge-pass { background: rgba(46,160,67,0.15); color: var(--green); }
+.badge-suspicious { background: rgba(210,153,34,0.15); color: var(--amber); }
+.badge-swallowed { background: rgba(248,81,73,0.15); color: var(--red); }
+.badge-skipped { background: rgba(72,79,88,0.15); color: var(--grey); }
+/* === Settings Modal === */
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 1000;
+  align-items: center; justify-content: center; }
+.modal-overlay.open { display: flex; }
+.modal { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px;
+  padding: 24px; max-width: 500px; width: 90%; max-height: 80vh; overflow-y: auto; }
+.modal h2 { margin-bottom: 16px; font-size: 18px; }
+.modal label { display: block; margin-bottom: 12px; font-size: 13px; color: var(--text-secondary); }
+.modal input, .modal select { width: 100%; padding: 6px 10px; margin-top: 4px; background: var(--bg);
+  border: 1px solid var(--border); border-radius: 4px; color: var(--text); font-size: 14px; }
+/* === Animations === */
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; } }
+/* === Print === */
+@media print { .header-controls, .tab-bar, .btn, .modal-overlay { display: none !important; }
+  .tab-content { display: block !important; } body { background: #fff; color: #000; } }
+</style>
+</head>
+<body>
+<!-- Header -->
+<div class="header" style="position:relative">
+  <h1>&#x639;&#x635;&#x627; &#x645;&#x648;&#x633;&#x649; &#x2014; Asa</h1>
+  <div class="verse">&#x641;&#x648;&#x642;&#x639; &#x627;&#x644;&#x62D;&#x642; &#x648;&#x628;&#x637;&#x644; &#x645;&#x627; &#x643;&#x627;&#x646;&#x648;&#x627; &#x64A;&#x639;&#x645;&#x644;&#x648;&#x646; &#x2014; &#x37;:&#x31;&#x31;&#x37;</div>
+  <div class="subtitle">Forensic Data Integrity Screener for Meta-Analysis &middot; v1.0.0</div>
+  <div class="header-controls">
+    <button id="themeToggle" title="Toggle light/dark mode">&#x2600;</button>
+    <button id="settingsBtn" title="Settings">&#x2699;</button>
+  </div>
+</div>
+
+<!-- Tab Bar -->
+<div class="tab-bar" role="tablist">
+  <button class="tab-btn active" data-tab="entry" role="tab" aria-selected="true">Data Entry</button>
+  <button class="tab-btn" data-tab="gauntlet" role="tab" aria-selected="false">The Gauntlet</button>
+  <button class="tab-btn" data-tab="heatmap" role="tab" aria-selected="false">Serpent's Eye</button>
+  <button class="tab-btn" data-tab="reports" role="tab" aria-selected="false">Forensic Reports</button>
+  <button class="tab-btn" data-tab="export" role="tab" aria-selected="false">Export</button>
+  <button class="tab-btn" data-tab="about" role="tab" aria-selected="false">About</button>
+</div>
+
+<!-- Tab 1: Data Entry -->
+<div class="tab-content active" id="tab-entry" data-tab="entry" role="tabpanel">
+  <h2>Load Study Data</h2>
+  <p style="color:var(--text-secondary);margin-bottom:16px">
+    Paste CSV data, upload a file, enter manually, or load a demo dataset.
+  </p>
+  <div id="data-entry-area"></div>
+</div>
+
+<!-- Tab 2: The Gauntlet -->
+<div class="tab-content" id="tab-gauntlet" data-tab="gauntlet" role="tabpanel">
+  <div id="gauntlet-area"></div>
+</div>
+
+<!-- Tab 3: Serpent's Eye -->
+<div class="tab-content" id="tab-heatmap" data-tab="heatmap" role="tabpanel">
+  <div id="heatmap-area"></div>
+</div>
+
+<!-- Tab 4: Forensic Reports -->
+<div class="tab-content" id="tab-reports" data-tab="reports" role="tabpanel">
+  <div id="reports-area"></div>
+</div>
+
+<!-- Tab 5: Export -->
+<div class="tab-content" id="tab-export" data-tab="export" role="tabpanel">
+  <div id="export-area"></div>
+</div>
+
+<!-- Tab 6: About -->
+<div class="tab-content" id="tab-about" data-tab="about" role="tabpanel">
+  <h2 style="margin-bottom:4px">About Asa</h2>
+  <p style="color:var(--text-secondary);margin-bottom:16px;font-style:italic;direction:rtl">
+    &#x641;&#x648;&#x642;&#x639; &#x627;&#x644;&#x62D;&#x642; &#x648;&#x628;&#x637;&#x644; &#x645;&#x627; &#x643;&#x627;&#x646;&#x648;&#x627; &#x64A;&#x639;&#x645;&#x644;&#x648;&#x646;
+  </p>
+  <p style="color:var(--text-secondary);margin-bottom:24px">
+    "So the truth was established, and what they were doing was made void." &mdash; Surah Al-A'raf 7:118
+  </p>
+
+  <!-- Methodology overview -->
+  <div class="card" style="margin-bottom:16px">
+    <h3 style="color:var(--accent);margin-bottom:12px">Methodology</h3>
+    <p style="margin-bottom:12px">Asa applies four complementary forensic tests ("fangs") to each study in your dataset. Each fang probes a different dimension of data plausibility &mdash; from granularity of means to distributional properties of raw digits. Studies are classified by a severity-weighted composite verdict.</p>
+    <div style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:16px;margin-bottom:12px;font-family:var(--font-mono);font-size:12px;line-height:1.8;color:var(--text-secondary)">
+      <div style="text-align:center;margin-bottom:8px;color:var(--accent);font-size:13px">Workflow</div>
+      <div>1. Data Entry &rarr; parse CSV / manual rows (mean, SD, N, p-value, test stat)</div>
+      <div>2. The Gauntlet &rarr; run all 4 fangs per study, compute weighted verdict</div>
+      <div>3. Serpent's Eye &rarr; study &times; fang heatmap for pattern detection</div>
+      <div>4. Forensic Reports &rarr; per-study detail with plain-language interpretation</div>
+      <div>5. Export &rarr; CSV, JSON, or TruthCert receipt bundle</div>
+    </div>
+    <h4 style="margin-bottom:8px">Verdict scoring</h4>
+    <p style="margin-bottom:8px">Each fang returns PASS, WARN, FAIL, or SKIP (insufficient data). The composite verdict uses severity weights:</p>
+    <table style="width:100%;border-collapse:collapse;font-size:13px;margin-bottom:8px">
+      <tr style="border-bottom:1px solid var(--border)">
+        <th style="text-align:left;padding:4px 8px;color:var(--text-secondary)">Result</th>
+        <th style="text-align:left;padding:4px 8px;color:var(--text-secondary)">Weight</th>
+        <th style="text-align:left;padding:4px 8px;color:var(--text-secondary)">Meaning</th>
+      </tr>
+      <tr style="border-bottom:1px solid var(--border)">
+        <td style="padding:4px 8px;color:var(--red)">FAIL</td>
+        <td style="padding:4px 8px">2</td>
+        <td style="padding:4px 8px">Mathematical impossibility or decision-altering error</td>
+      </tr>
+      <tr style="border-bottom:1px solid var(--border)">
+        <td style="padding:4px 8px;color:var(--amber)">WARN</td>
+        <td style="padding:4px 8px">1</td>
+        <td style="padding:4px 8px">Minor discrepancy within rounding tolerance</td>
+      </tr>
+      <tr style="border-bottom:1px solid var(--border)">
+        <td style="padding:4px 8px;color:var(--green)">PASS</td>
+        <td style="padding:4px 8px">0</td>
+        <td style="padding:4px 8px">Consistent with reported values</td>
+      </tr>
+      <tr>
+        <td style="padding:4px 8px;color:var(--grey)">SKIP</td>
+        <td style="padding:4px 8px">&mdash;</td>
+        <td style="padding:4px 8px">Insufficient data for this test</td>
+      </tr>
+    </table>
+    <p style="font-size:13px;color:var(--text-secondary)">Overall: <strong style="color:var(--red)">Suspicious</strong> = any FAIL (score &ge; 2); <strong style="color:var(--amber)">Caution</strong> = WARNs only (score 1); <strong style="color:var(--green)">Clean</strong> = all PASS/SKIP.</p>
+  </div>
+
+  <!-- The four fangs -->
+  <div class="card" style="margin-bottom:12px">
+    <h3 style="color:var(--accent);margin-bottom:8px">Fang 1: GRIM (Granularity-Related Inconsistency of Means)</h3>
+    <p style="margin-bottom:8px">GRIM tests whether a reported mean is mathematically possible given the sample size and number of items. Integer-scale data (e.g., Likert scales) can only produce means at specific granular steps &mdash; if the reported mean falls between these steps, the data cannot be real.</p>
+    <p style="margin-bottom:4px;font-size:13px"><strong>Applicability:</strong> Discrete/count data only. Skipped for continuous measures.</p>
+    <p style="font-size:13px;color:var(--text-secondary)">Brown, N. J. L., &amp; Heathers, J. A. J. (2017). The GRIM test: A simple technique detects numerous anomalies in the reporting of results in psychology. <em>Social Psychological and Personality Science</em>, 8(4), 363&ndash;369.</p>
+  </div>
+
+  <div class="card" style="margin-bottom:12px">
+    <h3 style="color:var(--accent);margin-bottom:8px">Fang 2: SPRITE (Sample Parameter Reconstruction via Iterative Techniques)</h3>
+    <p style="margin-bottom:8px">SPRITE attempts to reconstruct plausible individual-level data that could produce the reported mean and SD. If no valid dataset can be found within bounded iterations, the reported statistics are flagged as potentially impossible for the given scale constraints.</p>
+    <p style="margin-bottom:4px;font-size:13px"><strong>Applicability:</strong> Requires mean, SD, N, and scale bounds. Skipped if scale max is unset.</p>
+    <p style="font-size:13px;color:var(--text-secondary)">Heathers, J. A. J., Anaya, J., van der Zee, T., &amp; Brown, N. J. L. (2018). Recovering data from summary statistics: Sample Parameter Reconstruction via Iterative TEchniques (SPRITE). <em>PeerJ Preprints</em>, 6, e26968v1.</p>
+  </div>
+
+  <div class="card" style="margin-bottom:12px">
+    <h3 style="color:var(--accent);margin-bottom:8px">Fang 3: statcheck</h3>
+    <p style="margin-bottom:8px">statcheck recomputes p-values from reported test statistics (t, F, &chi;&sup2;, z, r) and compares them against reported p-values. Discrepancies beyond rounding tolerance indicate reporting errors; gross discrepancies that change statistical significance are flagged as decision errors.</p>
+    <p style="margin-bottom:4px;font-size:13px"><strong>Applicability:</strong> Requires test statistic + df + reported p-value. Supports one-tailed and inequality formats.</p>
+    <p style="font-size:13px;color:var(--text-secondary)">Epskamp, S., &amp; Nuijten, M. B. (2016). statcheck: Extract statistics from articles and recompute p values. <em>R package version 1.3.0</em>.</p>
+  </div>
+
+  <div class="card" style="margin-bottom:12px">
+    <h3 style="color:var(--accent);margin-bottom:8px">Fang 4: Terminal Digit Analysis (TDA)</h3>
+    <p style="margin-bottom:8px">TDA examines the distribution of last digits across all numeric values in the dataset. In authentic data, terminal digits are approximately uniformly distributed (each digit 0&ndash;9 appears ~10% of the time). Fabricated data often shows non-uniform patterns, detectable via a &chi;&sup2; goodness-of-fit test.</p>
+    <p style="margin-bottom:4px;font-size:13px"><strong>Applicability:</strong> Requires &ge;20 numeric values for reliable &chi;&sup2; (df=9). Fewer values produce a SKIP.</p>
+    <p style="font-size:13px;color:var(--text-secondary)">Mosimann, J. E., Wiseman, C. V., &amp; Edelman, R. E. (1995). Data fabrication: Can people generate random digits? <em>Accountability in Research</em>, 4(1), 31&ndash;46.</p>
+  </div>
+
+  <!-- Technical details -->
+  <div class="card" style="margin-bottom:12px">
+    <h3 style="color:var(--accent);margin-bottom:8px">Technical Details</h3>
+    <p style="margin-bottom:6px"><strong>Math library:</strong> Pure JavaScript implementations of the standard normal CDF (Abramowitz &amp; Stegun 26.2.17), regularized incomplete beta function (Lentz continued fraction from Numerical Recipes), and derived t/F/&chi;&sup2; CDFs. Validated against R's <code>pnorm</code>, <code>pt</code>, <code>pf</code>, <code>pchisq</code> to &lt;0.001 tolerance.</p>
+    <p style="margin-bottom:6px"><strong>SPRITE engine:</strong> Seeded xoshiro128** PRNG for deterministic reconstruction (default 10,000 iterations). Uses swap-based optimization starting from a uniform initialization.</p>
+    <p style="margin-bottom:6px"><strong>TruthCert:</strong> Export bundles include a SHA-256 content hash over all input data + results, ensuring tamper-evident provenance. The hash covers raw inputs, settings, and every fang result.</p>
+    <p><strong>Privacy:</strong> All computations run entirely in-browser. No data is transmitted to any server. localStorage is used only for user preferences (dark mode, default settings).</p>
+  </div>
+
+  <div class="card" style="margin-bottom:12px">
+    <h3 style="margin-bottom:8px">Disclaimer</h3>
+    <p style="color:var(--text-secondary)">Asa flags statistical anomalies for investigation, not as proof of fraud. GRIM and SPRITE failures prove mathematical impossibility of reported statistics &mdash; but the cause could be transcription error, rounding differences, or unit confusion rather than fabrication. statcheck flags may arise from unconventional rounding or one-tailed tests. TDA deviations may reflect legitimate data patterns. Always investigate flagged studies in context before drawing conclusions about data integrity.</p>
+  </div>
+
+  <p style="font-size:12px;color:var(--text-secondary)">Asa v<span id="aboutVersion">1.0.0</span> &mdash; No external dependencies. All computations run locally in your browser. &copy; 2026.</p>
+</div>
+
+<!-- Settings Modal -->
+<div class="modal-overlay" id="settingsModal">
+  <div class="modal">
+    <h2>Settings</h2>
+    <label>Default data type
+      <select id="setting-dataType"><option value="discrete" selected>Discrete (counts, Likert)</option><option value="continuous">Continuous (blood pressure, weight)</option></select>
+    </label>
+    <label>Scale items (for multi-item composites)
+      <input type="number" id="setting-items" value="1" min="1" max="100">
+    </label>
+    <label>Scale minimum
+      <input type="number" id="setting-scaleMin" value="1">
+    </label>
+    <label>Scale maximum
+      <input type="number" id="setting-scaleMax" value="" placeholder="Required for SPRITE">
+    </label>
+    <label>SPRITE max iterations
+      <input type="number" id="setting-spriteIter" value="10000" min="1000" max="100000">
+    </label>
+    <label>Decimal precision
+      <select id="setting-decimals"><option value="auto" selected>Auto-detect</option><option value="1">1</option><option value="2">2</option><option value="3">3</option></select>
+    </label>
+    <div style="display:flex;gap:8px;margin-top:16px">
+      <button class="btn btn-primary" id="settingsSave">Save</button>
+      <button class="btn btn-secondary" id="settingsClose">Close</button>
+    </div>
+  </div>
+</div>
+
+<script>
+'use strict';
+/* ============================================================
+   ASA v1.0.0 -- Forensic Data Integrity Screener
+   ============================================================ */
+
+const ASA_VERSION = '1.0.0';
+const LS_PREFIX = 'asa_';
+
+// -- Tab switching --
+document.querySelectorAll('.tab-btn').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); b.setAttribute('aria-selected', 'false'); });
+    document.querySelectorAll('.tab-content').forEach(function(tc) { tc.classList.remove('active'); });
+    btn.classList.add('active');
+    btn.setAttribute('aria-selected', 'true');
+    var target = btn.getAttribute('data-tab');
+    document.querySelector('.tab-content[data-tab="' + target + '"]').classList.add('active');
+  });
+});
+
+// -- Theme toggle --
+document.getElementById('themeToggle').addEventListener('click', function() {
+  document.body.classList.toggle('light');
+  var isLight = document.body.classList.contains('light');
+  document.getElementById('themeToggle').textContent = isLight ? '\uD83C\uDF19' : '\u2600';
+  try { localStorage.setItem(LS_PREFIX + 'theme', isLight ? 'light' : 'dark'); } catch(e) {}
+});
+(function loadTheme() {
+  try {
+    var saved = localStorage.getItem(LS_PREFIX + 'theme');
+    if (saved === 'light') { document.body.classList.add('light'); document.getElementById('themeToggle').textContent = '\uD83C\uDF19'; }
+  } catch(e) {}
+})();
+
+// -- Settings modal --
+document.getElementById('settingsBtn').addEventListener('click', function() { document.getElementById('settingsModal').classList.add('open'); });
+document.getElementById('settingsClose').addEventListener('click', function() { document.getElementById('settingsModal').classList.remove('open'); });
+document.getElementById('settingsModal').addEventListener('click', function(e) { if (e.target === e.currentTarget) e.currentTarget.classList.remove('open'); });
+
+function getSettings() {
+  return {
+    dataType: document.getElementById('setting-dataType').value,
+    items: parseInt(document.getElementById('setting-items').value) || 1,
+    scaleMin: parseFloat(document.getElementById('setting-scaleMin').value),
+    scaleMax: parseFloat(document.getElementById('setting-scaleMax').value),
+    spriteIter: parseInt(document.getElementById('setting-spriteIter').value) || 10000,
+    decimals: document.getElementById('setting-decimals').value
+  };
+}
+document.getElementById('settingsSave').addEventListener('click', function() {
+  try { localStorage.setItem(LS_PREFIX + 'settings', JSON.stringify(getSettings())); } catch(e) {}
+  document.getElementById('settingsModal').classList.remove('open');
+});
+(function loadSettings() {
+  try {
+    var saved = JSON.parse(localStorage.getItem(LS_PREFIX + 'settings'));
+    if (!saved) return;
+    if (saved.dataType) document.getElementById('setting-dataType').value = saved.dataType;
+    if (saved.items) document.getElementById('setting-items').value = saved.items;
+    if (isFinite(saved.scaleMin)) document.getElementById('setting-scaleMin').value = saved.scaleMin;
+    if (isFinite(saved.scaleMax)) document.getElementById('setting-scaleMax').value = saved.scaleMax;
+    if (saved.spriteIter) document.getElementById('setting-spriteIter').value = saved.spriteIter;
+    if (saved.decimals) document.getElementById('setting-decimals').value = saved.decimals;
+  } catch(e) {}
+})();
+
+/* ============================================================
+   STATISTICAL DISTRIBUTION FUNCTIONS
+   Ported from PairwisePro (R-validated).
+   ============================================================ */
+
+function lgamma(e) {
+  // Lanczos approximation (g=7, n=9) -- R-validated
+  var t = [0.9999999999998099,676.5203681218851,-1259.1392167224028,771.3234287776531,
+    -176.6150291621406,12.507343278686905,-0.13857109526572012,9.984369578019572e-6,1.5056327351493116e-7];
+  if (e < 0.5) return Math.log(Math.PI / Math.sin(Math.PI * e)) - lgamma(1 - e);
+  e -= 1;
+  var n = t[0];
+  for (var a = 1; a < 9; a++) n += t[a] / (e + a);
+  var z = e + 7 + 0.5;
+  return 0.5 * Math.log(2 * Math.PI) + (e + 0.5) * Math.log(z) - z + Math.log(n);
+}
+
+function gammainc(a, x) {
+  // Regularized lower incomplete gamma function P(a,x)
+  if (x < 0 || a <= 0) return NaN;
+  if (x === 0) return 0;
+  if (x < a + 1) {
+    // Series expansion
+    var n = 1 / a, term = 1 / a;
+    for (var s = 1; s < 100; s++) {
+      term *= x / (a + s);
+      n += term;
+      if (Math.abs(term) < 1e-14 * Math.abs(n)) break;
+    }
+    return n * Math.exp(-x + a * Math.log(x) - lgamma(a));
+  } else {
+    // Continued fraction (Lentz)
+    var cf = x + 1 - a;
+    var cinv = 1 / 1e-30;
+    var s2 = 1 / cf;
+    var i2 = s2;
+    for (var tt = 1; tt < 100; tt++) {
+      var r = -tt * (tt - a);
+      cf += 2;
+      s2 = r * s2 + cf; if (Math.abs(s2) < 1e-30) s2 = 1e-30;
+      cinv = cf + r / cinv; if (Math.abs(cinv) < 1e-30) cinv = 1e-30;
+      s2 = 1 / s2;
+      var o = s2 * cinv;
+      i2 *= o;
+      if (Math.abs(o - 1) < 1e-14) break;
+    }
+    return 1 - Math.exp(-x + a * Math.log(x) - lgamma(a)) * i2;
+  }
+}
+
+function betacf(a, b, x) {
+  // Continued fraction for incomplete beta (Numerical Recipes, Lentz method)
+  var FPMIN = 1e-30, EPS = 1e-14;
+  var qab = a + b, qap = a + 1, qam = a - 1;
+  var c = 1;
+  var d = 1 - qab * x / qap;
+  if (Math.abs(d) < FPMIN) d = FPMIN;
+  d = 1 / d;
+  var h = d;
+  for (var m = 1; m <= 200; m++) {
+    var m2 = 2 * m;
+    // Even step
+    var aa = m * (b - m) * x / ((qam + m2) * (a + m2));
+    d = 1 + aa * d; if (Math.abs(d) < FPMIN) d = FPMIN;
+    c = 1 + aa / c; if (Math.abs(c) < FPMIN) c = FPMIN;
+    d = 1 / d;
+    h *= d * c;
+    // Odd step
+    aa = -(a + m) * (qab + m) * x / ((a + m2) * (qap + m2));
+    d = 1 + aa * d; if (Math.abs(d) < FPMIN) d = FPMIN;
+    c = 1 + aa / c; if (Math.abs(c) < FPMIN) c = FPMIN;
+    d = 1 / d;
+    var del = d * c;
+    h *= del;
+    if (Math.abs(del - 1) < EPS) break;
+  }
+  return h;
+}
+
+function regularizedBeta(x, a, b) {
+  // Regularized incomplete beta function I_x(a,b)
+  if (x <= 0) return 0;
+  if (x >= 1) return 1;
+  var lbeta = lgamma(a) + lgamma(b) - lgamma(a + b);
+  var bt = Math.exp(a * Math.log(x) + b * Math.log(1 - x) - lbeta);
+  if (x < (a + 1) / (a + b + 2)) {
+    return bt * betacf(a, b, x) / a;
+  } else {
+    return 1 - bt * betacf(b, a, 1 - x) / b;
+  }
+}
+
+function pnorm(x) {
+  // Abramowitz & Stegun approximation
+  if (x === 0) return 0.5;
+  var a1=0.254829592, a2=-0.284496736, a3=1.421413741, a4=-1.453152027, a5=1.061405429;
+  var p=0.3275911, sign = x < 0 ? -1 : 1;
+  var ax = Math.abs(x) / Math.SQRT2;
+  var t = 1 / (1 + p * ax);
+  var erf = 1 - (((((a5*t + a4)*t) + a3)*t + a2)*t + a1)*t * Math.exp(-ax*ax);
+  return 0.5 * (1 + sign * erf);
+}
+
+function qnorm(p) {
+  if (p <= 0) return -Infinity;
+  if (p >= 1) return Infinity;
+  if (p === 0.5) return 0;
+  // Rational approximation (Peter Acklam)
+  var a = [-3.969683028665376e+01,2.209460984245205e+02,-2.759285104469687e+02,
+    1.383577518672690e+02,-3.066479806614716e+01,2.506628277459239e+00];
+  var b = [-5.447609879822406e+01,1.615858368580409e+02,-1.556989798598866e+02,
+    6.680131188771972e+01,-1.328068155288572e+01];
+  var c = [-7.784894002430293e-03,-3.223964580411365e-01,-2.400758277161838e+00,
+    -2.549732539343734e+00,4.374664141464968e+00,2.938163982698783e+00];
+  var d = [7.784695709041462e-03,3.224671290700398e-01,2.445134137142996e+00,3.754408661907416e+00];
+  var pLow = 0.02425, pHigh = 1 - pLow;
+  var q, r;
+  if (p < pLow) {
+    q = Math.sqrt(-2 * Math.log(p));
+    return (((((c[0]*q+c[1])*q+c[2])*q+c[3])*q+c[4])*q+c[5]) / ((((d[0]*q+d[1])*q+d[2])*q+d[3])*q+1);
+  } else if (p <= pHigh) {
+    q = p - 0.5; r = q * q;
+    return (((((a[0]*r+a[1])*r+a[2])*r+a[3])*r+a[4])*r+a[5])*q / (((((b[0]*r+b[1])*r+b[2])*r+b[3])*r+b[4])*r+1);
+  } else {
+    q = Math.sqrt(-2 * Math.log(1 - p));
+    return -(((((c[0]*q+c[1])*q+c[2])*q+c[3])*q+c[4])*q+c[5]) / ((((d[0]*q+d[1])*q+d[2])*q+d[3])*q+1);
+  }
+}
+
+function pt(t, df) {
+  if (df <= 0) return NaN;
+  if (!isFinite(t)) return t > 0 ? 1 : 0;
+  if (df > 1e6) return pnorm(t);
+  var x = df / (df + t * t);
+  var ib = regularizedBeta(x, df / 2, 0.5);
+  return t > 0 ? 1 - 0.5 * ib : 0.5 * ib;
+}
+
+function pchisq(x, df) {
+  if (x <= 0) return 0;
+  return gammainc(df / 2, x / 2);
+}
+
+function pf(x, df1, df2) {
+  if (x <= 0) return 0;
+  var v = df1 * x / (df1 * x + df2);
+  return regularizedBeta(v, df1 / 2, df2 / 2);
+}
+
+/* ============================================================
+   FANG 1: GRIM
+   Brown & Heathers (2017). Tests if mean is possible given n.
+   ============================================================ */
+
+function grimCheck(mean, n, items, decimals, rounding) {
+  items = items || 1;
+  decimals = (decimals !== undefined && decimals !== null) ? decimals : 2;
+  rounding = rounding || 'up_or_down';
+  var effectiveN = n * items;
+  var scale = Math.pow(10, decimals);
+  var halfUnit = 0.5 / scale;
+
+  function isConsistent(m) {
+    var sum = m * effectiveN;
+    var remainder = Math.abs(sum - Math.round(sum));
+    return remainder < 1e-6; // strict integer-closeness (float epsilon only)
+  }
+
+  var pass;
+  if (rounding === 'up_or_down') {
+    pass = isConsistent(mean) || isConsistent(mean + halfUnit) || isConsistent(mean - halfUnit);
+  } else {
+    pass = isConsistent(mean);
+  }
+
+  var sum = mean * effectiveN;
+  var nearestInt = Math.round(sum);
+  return {
+    pass: pass,
+    sum: sum,
+    nearestInt: nearestInt,
+    remainder: Math.abs(sum - nearestInt),
+    effectiveN: effectiveN,
+    explanation: pass
+      ? 'Mean ' + mean + ' x n\u00d7items=' + effectiveN + ' = ' + sum.toFixed(4) + ' \u2248 ' + nearestInt + ' (consistent)'
+      : 'Mean ' + mean + ' x n\u00d7items=' + effectiveN + ' = ' + sum.toFixed(4) + ', not close to any integer \u2192 IMPOSSIBLE'
+  };
+}
+
+/* ============================================================
+   SEEDED PRNG (xoshiro128**)
+   Ported from MultiverseMA.
+   ============================================================ */
+
+function xoshiro128ss(a, b, c, d) {
+  return function() {
+    var t = b << 9; var r = a * 5; r = (r << 7 | r >>> 25) * 9;
+    c ^= a; d ^= b; b ^= c; a ^= d; c ^= t;
+    d = d << 11 | d >>> 21;
+    return (r >>> 0) / 4294967296;
+  };
+}
+
+/* ============================================================
+   FANG 2: SPRITE
+   Heathers et al. (2018). Reconstructs dataset matching mean + SD.
+   ============================================================ */
+
+function spriteCheck(mean, sd, n, scaleMin, scaleMax, items, decimals, maxIter) {
+  items = items || 1;
+  decimals = (decimals !== undefined && decimals !== null) ? decimals : 2;
+  maxIter = maxIter || 10000;
+  var tolerance = 0.5 / Math.pow(10, decimals);
+
+  // Quick checks
+  if (sd < 0) return { pass: false, closestSD: null, explanation: 'SD cannot be negative' };
+  if (n < 2) return { pass: null, closestSD: null, explanation: 'SPRITE requires n >= 2 (SKIPPED)' };
+
+  // SD=0 means all values identical -> mean must be an integer in range
+  if (Math.abs(sd) < 1e-12) {
+    var allSame = mean >= scaleMin && mean <= scaleMax && Math.abs(mean - Math.round(mean)) < tolerance;
+    return { pass: allSame, closestSD: 0, explanation: allSame ? 'SD=0, all values equal mean (valid)' : 'SD=0 but mean is not an integer in range' };
+  }
+
+  // Theoretical max SD for bounded discrete scale:
+  // Max variance when half values at scaleMin, half at scaleMax
+  var half = Math.floor(n / 2);
+  var maxMean = (half * scaleMin + (n - half) * scaleMax) / n;
+  var maxVar = (half * Math.pow(scaleMin - maxMean, 2) + (n - half) * Math.pow(scaleMax - maxMean, 2)) / (n - 1);
+  var maxSD = Math.sqrt(maxVar);
+  if (sd > maxSD + tolerance) {
+    return { pass: false, closestSD: null, explanation: 'SD=' + sd + ' exceeds theoretical maximum ' + maxSD.toFixed(3) + ' for n=' + n + ', scale [' + scaleMin + ',' + scaleMax + ']' };
+  }
+
+  // Target sum (must be integer for single-item discrete)
+  var targetSum = Math.round(mean * n * items);
+
+  // PRNG seeded on the inputs for determinism
+  var seed = Math.abs(Math.round(mean * 1000 + sd * 1000 + n * 7 + scaleMin * 13 + scaleMax * 17));
+  var rng = xoshiro128ss(seed, seed ^ 0x9E3779B9, seed ^ 0x6A09E667, seed ^ 0xBB67AE85);
+
+  var closestSD = Infinity;
+  var found = false;
+
+  for (var iter = 0; iter < maxIter; iter++) {
+    // Generate a dataset of n values in [scaleMin, scaleMax] that sums to targetSum
+    var vals = new Array(n);
+    var remaining = targetSum;
+    var valid = true;
+    for (var i = 0; i < n - 1; i++) {
+      var lo = Math.max(scaleMin, remaining - (n - 1 - i) * scaleMax);
+      var hi = Math.min(scaleMax, remaining - (n - 1 - i) * scaleMin);
+      if (lo > hi) { valid = false; break; }
+      vals[i] = Math.floor(lo + rng() * (hi - lo + 1));
+      vals[i] = Math.max(scaleMin, Math.min(scaleMax, vals[i]));
+      remaining -= vals[i];
+    }
+    if (!valid) continue;
+    vals[n - 1] = remaining;
+
+    // Check last value in range
+    if (vals[n - 1] < scaleMin || vals[n - 1] > scaleMax) continue;
+
+    // Compute SD of this dataset
+    var actualMean = 0;
+    for (var j = 0; j < n; j++) actualMean += vals[j];
+    actualMean /= n;
+    var variance = 0;
+    for (var j2 = 0; j2 < n; j2++) variance += (vals[j2] - actualMean) * (vals[j2] - actualMean);
+    variance /= (n - 1);
+    var actualSD = Math.sqrt(variance);
+    var diff = Math.abs(actualSD - sd);
+
+    if (diff < Math.abs(closestSD - sd)) closestSD = actualSD;
+    if (diff <= tolerance) { found = true; break; }
+  }
+
+  return {
+    pass: found,
+    closestSD: closestSD,
+    explanation: found
+      ? 'Found valid dataset: n=' + n + ', mean=' + mean + ', SD\u2248' + closestSD.toFixed(3) + ' (within tolerance of ' + sd + ')'
+      : 'After ' + maxIter + ' iterations, closest SD=' + (isFinite(closestSD) ? closestSD.toFixed(3) : 'N/A') + ' (target: ' + sd + ') \u2192 IMPOSSIBLE'
+  };
+}
+
+/* ============================================================
+   FANG 3: statcheck
+   Epskamp & Nuijten (2016). Recomputes p from test stat + df.
+   ============================================================ */
+
+function statcheckVerify(statType, statValue, df1, df2, pReported, tailed) {
+  tailed = tailed || 2;
+
+  // Parse inequality input
+  var isInequality = false, ineqDir = null, pTarget = null;
+  if (typeof pReported === 'string') {
+    var m = pReported.match(/^\s*([<>])\s*([\d.]+)\s*$/);
+    if (m) {
+      isInequality = true;
+      ineqDir = m[1]; // '<' or '>'
+      pTarget = parseFloat(m[2]);
+    } else {
+      pReported = parseFloat(pReported);
+    }
+  }
+  if (!isInequality) pTarget = parseFloat(pReported);
+
+  // Compute p from test statistic
+  var pComputed;
+  switch(statType) {
+    case 't':
+      pComputed = tailed === 1
+        ? (1 - pt(Math.abs(statValue), df1))
+        : 2 * (1 - pt(Math.abs(statValue), df1));
+      break;
+    case 'F':
+      pComputed = 1 - pf(statValue, df1, df2);
+      break;
+    case 'chi2':
+      pComputed = 1 - pchisq(statValue, df1);
+      break;
+    case 'z':
+      pComputed = tailed === 1
+        ? (1 - pnorm(Math.abs(statValue)))
+        : 2 * (1 - pnorm(Math.abs(statValue)));
+      break;
+    default:
+      return { pComputed: null, match: null, decisionError: false, explanation: 'Unknown stat type: ' + statType };
+  }
+
+  var match, explanation;
+  if (isInequality) {
+    // Inequality check
+    if (ineqDir === '<') {
+      match = pComputed < pTarget;
+      explanation = match
+        ? 'Reported p ' + pReported + ', recomputed p=' + pComputed.toFixed(6) + ' < ' + pTarget + ' \u2713'
+        : 'Reported p ' + pReported + ', but recomputed p=' + pComputed.toFixed(6) + ' \u2265 ' + pTarget + ' \u2717';
+    } else {
+      match = pComputed > pTarget;
+      explanation = match
+        ? 'Reported p ' + pReported + ', recomputed p=' + pComputed.toFixed(6) + ' > ' + pTarget + ' \u2713'
+        : 'Reported p ' + pReported + ', but recomputed p=' + pComputed.toFixed(6) + ' \u2264 ' + pTarget + ' \u2717';
+    }
+  } else {
+    // Rounding-aware exact comparison
+    // Detect decimal places in reported p
+    var pStr = String(pTarget);
+    var pDecimals = (pStr.split('.')[1] || '').length;
+    var pTolerance = 0.5 / Math.pow(10, pDecimals);
+    match = Math.abs(pComputed - pTarget) <= pTolerance;
+    explanation = match
+      ? 'Reported p=' + pTarget + ', recomputed p=' + pComputed.toFixed(6) + ' (match within rounding)'
+      : 'Reported p=' + pTarget + ', recomputed p=' + pComputed.toFixed(6) + ' (MISMATCH, diff=' + Math.abs(pComputed - pTarget).toFixed(6) + ')';
+  }
+
+  // Decision error: does the mismatch cross a standard threshold?
+  var thresholds = [0.001, 0.01, 0.05, 0.10];
+  var decisionError = false;
+  if (!isInequality) {
+    for (var ti = 0; ti < thresholds.length; ti++) {
+      var th = thresholds[ti];
+      if ((pTarget < th && pComputed >= th) || (pTarget >= th && pComputed < th)) {
+        if (Math.abs(pTarget - th) > 0.001 || Math.abs(pComputed - th) > 0.001) {
+          decisionError = true;
+          explanation += ' -- DECISION ERROR: crosses ' + th + ' threshold';
+          break;
+        }
+      }
+    }
+  }
+
+  return { pComputed: pComputed, match: match, decisionError: decisionError, explanation: explanation };
+}
+
+/* ============================================================
+   FANG 4: Terminal Digit Analysis (dataset-level)
+   Mosimann et al. (2002). Chi-squared uniformity test.
+   ============================================================ */
+
+function extractTerminalDigits(values) {
+  return values.map(function(v) {
+    var s = String(Math.abs(v));
+    // Terminal digit = last character of the string representation
+    // For "3.14" -> 4, for "42" -> 2
+    // Note: JS String(1.0) = "1", so terminal digit is 1, not 0
+    return parseInt(s.charAt(s.length - 1));
+  });
+}
+
+function tdaCheck(digitCounts) {
+  // digitCounts: array of 10 counts [count_0, count_1, ..., count_9]
+  var total = 0;
+  for (var i = 0; i < 10; i++) total += digitCounts[i];
+
+  if (total < 50) {
+    return {
+      verdict: 'SKIPPED',
+      chiSq: null,
+      pValue: null,
+      total: total,
+      digitCounts: digitCounts,
+      explanation: 'Only ' + total + ' terminal digits (need \u226550 for meaningful test)'
+    };
+  }
+
+  var expected = total / 10;
+  var chiSq = 0;
+  for (var j = 0; j < 10; j++) {
+    chiSq += Math.pow(digitCounts[j] - expected, 2) / expected;
+  }
+
+  var pValue = 1 - pchisq(chiSq, 9);
+
+  var verdict;
+  if (pValue > 0.05) verdict = 'PASS';
+  else if (pValue > 0.01) verdict = 'WARN';
+  else verdict = 'FAIL';
+
+  return {
+    verdict: verdict,
+    chiSq: chiSq,
+    pValue: pValue,
+    total: total,
+    expected: expected,
+    digitCounts: digitCounts,
+    explanation: 'Chi-squared(9) = ' + chiSq.toFixed(2) + ', p = ' + pValue.toFixed(4) + '. ' +
+      (verdict === 'PASS' ? 'Terminal digit distribution consistent with authentic data.'
+      : verdict === 'WARN' ? 'Mildly non-uniform terminal digits -- warrants investigation.'
+      : 'Significantly non-uniform terminal digits -- suspicious pattern.')
+  };
+}
+
+/* ============================================================
+   CSV PARSER + COLUMN MAPPER
+   ============================================================ */
+
+var COLUMN_ALIASES = {
+  study:     ['study', 'author', 'name', 'label', 'studlab', 'study_name'],
+  n_t:       ['n_t', 'n1', 'n_treatment', 'n_exp', 'n_experimental'],
+  n_c:       ['n_c', 'n2', 'n_control', 'n_ctrl'],
+  mean_t:    ['mean_t', 'm1', 'mean_treatment', 'mean_exp'],
+  mean_c:    ['mean_c', 'm2', 'mean_control', 'mean_ctrl'],
+  sd_t:      ['sd_t', 's1', 'sd_treatment', 'sd_exp'],
+  sd_c:      ['sd_c', 's2', 'sd_control', 'sd_ctrl'],
+  items:     ['items', 'n_items', 'scale_items'],
+  scale_min: ['scale_min', 'min_val'],
+  scale_max: ['scale_max', 'max_val'],
+  data_type: ['data_type', 'type'],
+  test_stat: ['test_stat', 'test_statistic', 'statistic'],
+  stat_type: ['stat_type', 'test_type'],
+  df:        ['df', 'df1'],
+  df2:       ['df2'],
+  p_reported:['p_reported', 'p_value', 'pvalue'],
+  tailed:    ['tailed', 'tails']
+};
+
+function parseCSV(text) {
+  var lines = text.trim().split(/\r?\n/).filter(function(l) { return l.trim(); });
+  if (lines.length < 2) return { headers: [], rows: [], mapping: {} };
+  var sep = lines[0].indexOf('\t') >= 0 ? '\t' : ',';
+  var rawHeaders = lines[0].split(sep).map(function(h) { return h.trim().replace(/^["']|["']$/g, ''); });
+
+  // Fuzzy column mapping: prefer longer alias matches first
+  var mapping = {};
+  var lowerHeaders = rawHeaders.map(function(h) { return h.toLowerCase().replace(/[\s_-]+/g, '_'); });
+  var fields = Object.keys(COLUMN_ALIASES);
+  for (var fi = 0; fi < fields.length; fi++) {
+    var field = fields[fi];
+    var aliases = COLUMN_ALIASES[field].slice().sort(function(a, b) { return b.length - a.length; });
+    for (var ai = 0; ai < aliases.length; ai++) {
+      var alias = aliases[ai].toLowerCase().replace(/[\s_-]+/g, '_');
+      var idx = lowerHeaders.indexOf(alias);
+      if (idx >= 0) {
+        var alreadyUsed = false;
+        var vals = Object.values(mapping);
+        for (var vi = 0; vi < vals.length; vi++) { if (vals[vi] === idx) { alreadyUsed = true; break; } }
+        if (!alreadyUsed) { mapping[field] = idx; break; }
+      }
+    }
+  }
+
+  var rows = [];
+  for (var i = 1; i < lines.length; i++) {
+    var cells = lines[i].split(sep).map(function(c) { return c.trim().replace(/^["']|["']$/g, ''); });
+    var row = {};
+    var mfields = Object.keys(mapping);
+    for (var mfi = 0; mfi < mfields.length; mfi++) {
+      var mfield = mfields[mfi];
+      var colIdx = mapping[mfield];
+      var val = cells[colIdx];
+      if (mfield === 'study' || mfield === 'data_type' || mfield === 'stat_type' || mfield === 'p_reported') {
+        row[mfield] = val || '';
+      } else if (mfield === 'tailed') {
+        row[mfield] = parseInt(val) || 2;
+      } else {
+        var num = parseFloat(val);
+        row[mfield] = isFinite(num) ? num : null;
+      }
+    }
+    // Preserve raw string for mean (to detect decimal places)
+    if (mapping.mean_t !== undefined) row._mean_t_str = cells[mapping.mean_t] || '';
+    if (mapping.mean_c !== undefined) row._mean_c_str = cells[mapping.mean_c] || '';
+    if (mapping.p_reported !== undefined) row._p_str = cells[mapping.p_reported] || '';
+    rows.push(row);
+  }
+
+  return { headers: rawHeaders, rows: rows, mapping: mapping };
+}
+
+function countDecimals(str) {
+  if (!str || typeof str !== 'string') return 2;
+  var m = str.match(/\.(\d+)/);
+  return m ? m[1].length : 0;
+}
+
+/* ============================================================
+   DEMO DATASETS
+   ============================================================ */
+
+var DEMO_TUTORIAL = [
+  // 4 GRIM violations
+  { study:'Fabricio 2019', n_t:10, n_c:12, mean_t:2.45, mean_c:3.1, sd_t:1.2, sd_c:1.1, _mean_t_str:'2.45', _mean_c_str:'3.1', data_type:'discrete', _note:'GRIM fail: 2.45x10=24.5' },
+  { study:'Mendez 2020',  n_t:15, n_c:15, mean_t:4.27, mean_c:3.8, sd_t:0.9, sd_c:1.0, _mean_t_str:'4.27', _mean_c_str:'3.8', data_type:'discrete', _note:'GRIM fail: 4.27x15=64.05' },
+  { study:'Park 2018',    n_t:25, n_c:23, mean_t:3.14, mean_c:2.96, sd_t:1.1, sd_c:1.3, _mean_t_str:'3.14', _mean_c_str:'2.96', data_type:'discrete', _note:'GRIM fail on treatment: 3.14x25=78.5' },
+  { study:'Russo 2021',   n_t:30, n_c:28, mean_t:5.43, mean_c:4.87, sd_t:1.5, sd_c:1.4, _mean_t_str:'5.43', _mean_c_str:'4.87', data_type:'discrete', _note:'GRIM fail: 5.43x30=162.9' },
+  // 3 SPRITE violations (GRIM passes but SD impossible)
+  { study:'Chen 2017',    n_t:10, n_c:10, mean_t:3.0, mean_c:3.5, sd_t:0.01, sd_c:1.08, _mean_t_str:'3.0', _mean_c_str:'3.5', data_type:'discrete', _note:'SPRITE fail: SD=0.01 impossible for n=10 mean=3.0 scale 1-5' },
+  { study:'Novak 2019',   n_t:8,  n_c:8,  mean_t:4.0, mean_c:3.0, sd_t:0.02, sd_c:1.0, _mean_t_str:'4.0', _mean_c_str:'3.0', data_type:'discrete', _note:'SPRITE fail: SD=0.02 impossible' },
+  { study:'Yamada 2020',  n_t:12, n_c:12, mean_t:2.5, mean_c:3.0, sd_t:0.03, sd_c:0.9, _mean_t_str:'2.5', _mean_c_str:'3.0', data_type:'discrete', _note:'SPRITE fail: SD=0.03 impossible' },
+  // 2 statcheck mismatches
+  { study:'Brown 2016', test_stat:2.01, stat_type:'t', df:48, p_reported:'0.001', tailed:2, _p_str:'0.001', _note:'statcheck fail: t(48)=2.01->p~0.05, reported 0.001' },
+  { study:'Wilson 2021', test_stat:1.5, stat_type:'t', df:30, p_reported:'0.04', tailed:2, _p_str:'0.04', _note:'statcheck fail: t(30)=1.5->p~0.14, reported 0.04 -- decision error' },
+  // 1 TDA anomaly marker
+  { study:'Smith 2018', n_t:20, n_c:20, mean_t:3.50, mean_c:3.00, sd_t:1.00, sd_c:1.50, _mean_t_str:'3.50', _mean_c_str:'3.00', data_type:'discrete', _note:'Excessive 0s and 5s in terminal digits' },
+  // 2 clean studies
+  { study:'Ahmed 2020', n_t:20, n_c:20, mean_t:3.15, mean_c:2.90, sd_t:1.10, sd_c:1.05, _mean_t_str:'3.15', _mean_c_str:'2.90', data_type:'discrete', _note:'Clean' },
+  { study:'Lee 2019',   n_t:30, n_c:30, mean_t:4.20, mean_c:3.90, sd_t:1.30, sd_c:1.25, _mean_t_str:'4.20', _mean_c_str:'3.90', data_type:'discrete', _note:'Clean' }
+];
+
+var DEMO_FUJII = [
+  { study:'Fujii 2000a', n_t:30, n_c:30, mean_t:54.3, mean_c:53.7, sd_t:8.2, sd_c:7.9, data_type:'continuous', test_stat:2.31, stat_type:'t', df:58, p_reported:'0.001', tailed:2, _p_str:'0.001', _note:'statcheck: t(58)=2.31->p~0.024, reported 0.001' },
+  { study:'Fujii 2001a', n_t:40, n_c:40, mean_t:62.7, mean_c:61.4, sd_t:9.1, sd_c:8.8, data_type:'continuous', test_stat:1.85, stat_type:'t', df:78, p_reported:'0.02', tailed:2, _p_str:'0.02', _note:'statcheck: t(78)=1.85->p~0.068, reported 0.02 -- decision error' },
+  { study:'Fujii 2002a', n_t:25, n_c:25, mean_t:3.24, mean_c:2.87, sd_t:0.81, sd_c:0.93, data_type:'discrete', _mean_t_str:'3.24', _mean_c_str:'2.87', _note:'GRIM: 3.24x25=81.0 PASS but 2.87x25=71.75 FAIL' },
+  { study:'Fujii 2003a', n_t:20, n_c:20, mean_t:2.45, mean_c:2.13, sd_t:0.74, sd_c:0.68, data_type:'discrete', _mean_t_str:'2.45', _mean_c_str:'2.13', _note:'GRIM: 2.45x20=49.0 PASS; 2.13x20=42.6 FAIL' },
+  { study:'Fujii 2003b', n_t:30, n_c:30, mean_t:1.87, mean_c:2.43, sd_t:0.52, sd_c:0.61, data_type:'discrete', _mean_t_str:'1.87', _mean_c_str:'2.43', _note:'GRIM: 1.87x30=56.1 FAIL' },
+  { study:'Fujii 2004a', n_t:35, n_c:35, mean_t:58.6, mean_c:57.9, sd_t:7.3, sd_c:7.1, data_type:'continuous', test_stat:0.68, stat_type:'t', df:68, p_reported:'0.04', tailed:2, _p_str:'0.04', _note:'statcheck: t(68)=0.68->p~0.499, reported 0.04 -- gross mismatch' },
+  { study:'Fujii 2004b', n_t:25, n_c:25, mean_t:3.16, mean_c:2.92, sd_t:0.88, sd_c:0.79, data_type:'discrete', _mean_t_str:'3.16', _mean_c_str:'2.92', _note:'GRIM: 3.16x25=79.0 PASS; 2.92x25=73.0 PASS -- clean on GRIM' },
+  { study:'Fujii 2005a', n_t:40, n_c:40, mean_t:2.63, mean_c:3.17, sd_t:0.71, sd_c:0.83, data_type:'discrete', _mean_t_str:'2.63', _mean_c_str:'3.17', _note:'GRIM: 2.63x40=105.2 FAIL' },
+  { study:'Fujii 2005b', n_t:20, n_c:20, mean_t:61.4, mean_c:60.8, sd_t:6.5, sd_c:6.2, data_type:'continuous', test_stat:1.42, stat_type:'t', df:38, p_reported:'0.03', tailed:2, _p_str:'0.03', _note:'statcheck: t(38)=1.42->p~0.164, reported 0.03 -- decision error' },
+  { study:'Fujii 2006a', n_t:30, n_c:30, mean_t:3.47, mean_c:2.83, sd_t:0.92, sd_c:0.86, data_type:'discrete', _mean_t_str:'3.47', _mean_c_str:'2.83', _note:'GRIM: 3.47x30=104.1 FAIL' },
+  { study:'Fujii 2006b', n_t:25, n_c:25, mean_t:55.8, mean_c:54.6, sd_t:8.4, sd_c:7.7, data_type:'continuous', test_stat:2.05, stat_type:'t', df:48, p_reported:'0.001', tailed:2, _p_str:'0.001', _note:'statcheck: t(48)=2.05->p~0.046, reported 0.001 -- decision error' },
+  { study:'Fujii 2007a', n_t:35, n_c:35, mean_t:2.74, mean_c:3.26, sd_t:0.65, sd_c:0.78, data_type:'discrete', _mean_t_str:'2.74', _mean_c_str:'3.26', _note:'GRIM: 2.74x35=95.9 FAIL' }
+];
+
+/* ============================================================
+   TAB 1: DATA ENTRY UI
+   ============================================================ */
+
+(function buildDataEntry() {
+  var area = document.getElementById('data-entry-area');
+  area.innerHTML = '<div style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap">' +
+    '<button class="btn btn-secondary" id="loadTutorial">Load Tutorial Dataset</button>' +
+    '<button class="btn btn-secondary" id="loadFujii">Load Case Study: Fujii</button>' +
+    '</div>' +
+    '<div class="card">' +
+    '<h3 style="margin-bottom:8px">Paste CSV Data</h3>' +
+    '<textarea id="csvInput" rows="10" style="width:100%;font-family:var(--font-mono);font-size:13px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:4px;padding:8px;resize:vertical" placeholder="study,n_t,n_c,mean_t,mean_c,sd_t,sd_c,data_type&#10;Smith 2020,30,28,3.15,2.90,1.10,1.05,discrete"></textarea>' +
+    '<div style="display:flex;gap:8px;margin-top:8px">' +
+    '<button class="btn btn-secondary" id="parseCSVBtn">Parse CSV</button>' +
+    '<label class="btn btn-secondary" style="cursor:pointer">Upload CSV<input type="file" id="csvFileInput" accept=".csv,.tsv,.txt" style="display:none"></label>' +
+    '</div>' +
+    '</div>' +
+    '<div class="card" id="mappingPreview" style="display:none">' +
+    '<h3 style="margin-bottom:8px">Column Mapping</h3>' +
+    '<div id="mappingTable"></div>' +
+    '</div>' +
+    '<div class="card" id="dataPreview" style="display:none">' +
+    '<h3 style="margin-bottom:8px">Data Preview (<span id="rowCount">0</span> studies)</h3>' +
+    '<div id="previewTable" style="overflow-x:auto"></div>' +
+    '<button class="btn btn-primary" id="runGauntletBtn" style="margin-top:12px">\u2694 Run the Gauntlet</button>' +
+    '</div>';
+
+  var currentData = null;
+
+  function loadDataset(rows) {
+    currentData = rows;
+    showPreview(rows);
+  }
+
+  function showPreview(rows) {
+    if (!rows || rows.length === 0) return;
+    document.getElementById('dataPreview').style.display = 'block';
+    document.getElementById('rowCount').textContent = rows.length;
+    var fields = ['study','n_t','n_c','mean_t','mean_c','sd_t','sd_c','data_type','test_stat','stat_type','df','p_reported'];
+    var html = '<table style="width:100%;font-size:12px;border-collapse:collapse">';
+    html += '<tr>' + fields.map(function(f) { return '<th style="padding:4px 8px;border-bottom:1px solid var(--border);text-align:left;color:var(--accent)">' + f + '</th>'; }).join('') + '</tr>';
+    var limit = Math.min(rows.length, 20);
+    for (var i = 0; i < limit; i++) {
+      var row = rows[i];
+      html += '<tr>';
+      for (var fi = 0; fi < fields.length; fi++) {
+        var f = fields[fi];
+        var v = row[f];
+        html += '<td style="padding:3px 8px;border-bottom:1px solid var(--border);color:var(--text-secondary)">' + (v !== null && v !== undefined ? v : '') + '</td>';
+      }
+      html += '</tr>';
+    }
+    if (rows.length > 20) html += '<tr><td colspan="' + fields.length + '" style="padding:4px 8px;color:var(--text-secondary)">... and ' + (rows.length - 20) + ' more</td></tr>';
+    html += '</table>';
+    document.getElementById('previewTable').innerHTML = html;
+  }
+
+  document.getElementById('loadTutorial').addEventListener('click', function() {
+    loadDataset(DEMO_TUTORIAL);
+  });
+  document.getElementById('loadFujii').addEventListener('click', function() {
+    loadDataset(DEMO_FUJII);
+  });
+  document.getElementById('parseCSVBtn').addEventListener('click', function() {
+    var text = document.getElementById('csvInput').value;
+    if (!text.trim()) return;
+    var parsed = parseCSV(text);
+    currentData = parsed.rows;
+    // Show mapping
+    var mp = document.getElementById('mappingPreview');
+    mp.style.display = 'block';
+    var mhtml = '<table style="font-size:13px;border-collapse:collapse">';
+    var mfields = Object.keys(parsed.mapping);
+    for (var i = 0; i < mfields.length; i++) {
+      var mfield = mfields[i];
+      var idx = parsed.mapping[mfield];
+      mhtml += '<tr><td style="padding:2px 8px;color:var(--accent)">' + mfield + '</td><td style="padding:2px 8px">\u2190 column "' + parsed.headers[idx] + '" (col ' + idx + ')</td></tr>';
+    }
+    mhtml += '</table>';
+    document.getElementById('mappingTable').innerHTML = mhtml;
+    showPreview(parsed.rows);
+  });
+  document.getElementById('csvFileInput').addEventListener('change', function(e) {
+    var file = e.target.files[0];
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function(ev) {
+      document.getElementById('csvInput').value = ev.target.result;
+      document.getElementById('parseCSVBtn').click();
+    };
+    reader.readAsText(file);
+  });
+
+  // Run Gauntlet button
+  document.getElementById('runGauntletBtn').addEventListener('click', function() {
+    if (!currentData || currentData.length === 0) return;
+    runFullAnalysis(currentData);
+  });
+
+  // Expose for programmatic access
+  window.asaLoadData = loadDataset;
+  window.asaGetData = function() { return currentData; };
+})();
+
+/* ============================================================
+   VERDICT ENGINE + ORCHESTRATION
+   ============================================================ */
+
+function runFullAnalysis(rows) {
+  var settings = getSettings();
+  var results = [];
+
+  // Collect all numeric values for TDA (include 0)
+  var allNumericValues = [];
+
+  for (var ri = 0; ri < rows.length; ri++) {
+    var row = rows[ri];
+    var r = { study: row.study || ('Study ' + (results.length + 1)), grim: null, sprite: null, statcheck: null, verdict: 'GREY' };
+
+    // -- Input validation --
+    var dataType = row.data_type || settings.dataType;
+    var items = (row.items !== undefined && row.items !== null) ? row.items : settings.items;
+
+    // Validate n values (must be positive integer >= 2 for GRIM/SPRITE)
+    var nArmArr = ['n_t', 'n_c'];
+    for (var ni = 0; ni < nArmArr.length; ni++) {
+      var nkey = nArmArr[ni];
+      if (row[nkey] != null && (row[nkey] < 1 || !Number.isInteger(row[nkey]))) {
+        row[nkey] = null;
+      }
+    }
+
+    // -- GRIM --
+    if (dataType !== 'continuous') {
+      var grimResults = [];
+      var grimArms = ['_t', '_c'];
+      for (var gi = 0; gi < grimArms.length; gi++) {
+        var arm = grimArms[gi];
+        var gn = row['n' + arm];
+        var gmean = row['mean' + arm];
+        var gmeanStr = row['_mean' + arm + '_str'] || String(gmean);
+        if (gn != null && gmean != null && gn >= 2) {
+          var gdec = settings.decimals === 'auto' ? countDecimals(gmeanStr) : parseInt(settings.decimals);
+          var g = grimCheck(gmean, gn, items, gdec, 'up_or_down');
+          var gobj = { arm: arm === '_t' ? 'treatment' : 'control' };
+          var gkeys = Object.keys(g);
+          for (var gki = 0; gki < gkeys.length; gki++) gobj[gkeys[gki]] = g[gkeys[gki]];
+          grimResults.push(gobj);
+        }
+      }
+      if (grimResults.length > 0) {
+        var anyGrimFail = false;
+        for (var gi2 = 0; gi2 < grimResults.length; gi2++) { if (!grimResults[gi2].pass) anyGrimFail = true; }
+        r.grim = {
+          result: anyGrimFail ? 'FAIL' : 'PASS',
+          arms: grimResults,
+          explanation: grimResults.map(function(g2) { return g2.arm + ': ' + g2.explanation; }).join('; ')
+        };
+      }
+    } else {
+      r.grim = { result: 'SKIPPED', explanation: 'Continuous data -- GRIM not applicable' };
+    }
+
+    // -- SPRITE (both arms) --
+    var scaleMax = (row.scale_max !== undefined && row.scale_max !== null) ? row.scale_max : settings.scaleMax;
+    var scaleMin = (row.scale_min !== undefined && row.scale_min !== null) ? row.scale_min : (isFinite(settings.scaleMin) ? settings.scaleMin : 1);
+    if (dataType !== 'continuous' && isFinite(scaleMax)) {
+      var spriteResults = [];
+      var spArms = ['_t', '_c'];
+      for (var si = 0; si < spArms.length; si++) {
+        var sarm = spArms[si];
+        var sn = row['n' + sarm];
+        var smean = row['mean' + sarm];
+        var ssd = row['sd' + sarm];
+        var smeanStr = row['_mean' + sarm + '_str'] || String(smean);
+        if (sn != null && smean != null && ssd != null && sn >= 2) {
+          var sdec = settings.decimals === 'auto' ? countDecimals(smeanStr) : parseInt(settings.decimals);
+          var sp = spriteCheck(smean, ssd, sn, scaleMin, scaleMax, items, sdec, settings.spriteIter);
+          var spobj = { arm: sarm === '_t' ? 'treatment' : 'control' };
+          var spkeys = Object.keys(sp);
+          for (var spki = 0; spki < spkeys.length; spki++) spobj[spkeys[spki]] = sp[spkeys[spki]];
+          spriteResults.push(spobj);
+        }
+      }
+      if (spriteResults.length > 0) {
+        var anySpriteFail = false;
+        for (var si2 = 0; si2 < spriteResults.length; si2++) { if (spriteResults[si2].pass === false) anySpriteFail = true; }
+        r.sprite = {
+          result: anySpriteFail ? 'FAIL' : 'PASS',
+          closestSD: spriteResults[0] ? spriteResults[0].closestSD : null,
+          explanation: spriteResults.map(function(s2) { return s2.arm + ': ' + s2.explanation; }).join('; ')
+        };
+      } else {
+        r.sprite = { result: 'SKIPPED', explanation: 'Insufficient data for SPRITE' };
+      }
+    } else if (dataType === 'continuous') {
+      r.sprite = { result: 'SKIPPED', explanation: 'Continuous data -- SPRITE not applicable' };
+    } else if (!isFinite(scaleMax)) {
+      r.sprite = { result: 'SKIPPED', explanation: 'Scale maximum not set -- configure in Settings' };
+    } else {
+      r.sprite = { result: 'SKIPPED', explanation: 'Insufficient data for SPRITE' };
+    }
+
+    // -- statcheck --
+    if (row.test_stat != null && row.stat_type && (row.df != null || row.stat_type === 'z')) {
+      var pStr = row._p_str || String(row.p_reported);
+      var sc = statcheckVerify(row.stat_type, row.test_stat, row.df, row.df2 || null, pStr, row.tailed || 2);
+      var scResult = 'PASS';
+      if (sc.match === false && sc.decisionError) scResult = 'DECISION_ERROR';
+      else if (sc.match === false) scResult = 'FAIL';
+      else if (sc.match === true) scResult = 'PASS';
+      r.statcheck = { result: scResult, pComputed: sc.pComputed, decisionError: sc.decisionError, explanation: sc.explanation };
+    } else {
+      r.statcheck = { result: 'SKIPPED', explanation: 'Insufficient data for statcheck' };
+    }
+
+    // Collect numeric values for TDA (include all valid numbers, include 0)
+    var tdaFields = ['n_t','n_c','mean_t','mean_c','sd_t','sd_c','test_stat','df'];
+    for (var tfi = 0; tfi < tdaFields.length; tfi++) {
+      var tfield = tdaFields[tfi];
+      if (row[tfield] != null && isFinite(row[tfield])) {
+        allNumericValues.push(row[tfield]);
+      }
+    }
+
+    // -- Per-study verdict (Tier-weighted) --
+    var grimFail = r.grim && r.grim.result === 'FAIL';
+    var spriteFail = r.sprite && r.sprite.result === 'FAIL';
+    var scDecisionErr = r.statcheck && r.statcheck.result === 'DECISION_ERROR';
+    var scFail = r.statcheck && r.statcheck.result === 'FAIL';
+    var anyApplicable = (r.grim && r.grim.result !== 'SKIPPED') || (r.sprite && r.sprite.result !== 'SKIPPED') || (r.statcheck && r.statcheck.result !== 'SKIPPED');
+
+    if (!anyApplicable) {
+      r.verdict = 'GREY';
+    } else if (grimFail || spriteFail) {
+      r.verdict = 'SWALLOWED'; // Tier A: conclusive impossibility
+    } else if (scDecisionErr) {
+      r.verdict = 'SWALLOWED'; // Tier B: DECISION_ERROR always SWALLOWED per spec
+    } else if (scFail) {
+      r.verdict = 'SUSPICIOUS'; // Tier C: mismatch without threshold crossing
+    } else {
+      r.verdict = 'PASS';
+    }
+
+    results.push(r);
+  }
+
+  // -- TDA (dataset-level) --
+  var termDigits = extractTerminalDigits(allNumericValues);
+  var digitCounts = [0,0,0,0,0,0,0,0,0,0];
+  for (var di = 0; di < termDigits.length; di++) {
+    var d = termDigits[di];
+    if (d >= 0 && d <= 9) digitCounts[d]++;
+  }
+  var tdaResult = tdaCheck(digitCounts);
+
+  // Store results globally
+  window.asaResults = { studies: results, tda: tdaResult, timestamp: new Date().toISOString() };
+
+  // Render all views
+  renderGauntlet(results, tdaResult);
+  renderHeatmap(results, tdaResult);
+  renderReports(results, tdaResult);
+  renderExport(results, tdaResult, rows);
+
+  // Switch to Gauntlet tab
+  document.querySelector('.tab-btn[data-tab="gauntlet"]').click();
+}
+
+/* ============================================================
+   UTILITY: escapeAttr
+   ============================================================ */
+
+function escapeAttr(s) {
+  return String(s || '').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+/* ============================================================
+   TAB 2: GAUNTLET VIEW
+   ============================================================ */
+
+function fangCell(fangResult) {
+  if (!fangResult || fangResult.result === 'SKIPPED') return '<span style="color:var(--grey)" title="Skipped">\u2014</span>';
+  if (fangResult.result === 'PASS') return '<span style="color:var(--green)" title="' + escapeAttr(fangResult.explanation) + '">\u2713</span>';
+  if (fangResult.result === 'FAIL') return '<span style="color:var(--red)" title="' + escapeAttr(fangResult.explanation) + '">\u2717</span>';
+  if (fangResult.result === 'DECISION_ERROR') return '<span style="color:var(--red);font-weight:bold" title="' + escapeAttr(fangResult.explanation) + '">\u2717\u2717</span>';
+  return '<span style="color:var(--amber)" title="' + escapeAttr(fangResult.explanation) + '">\u26a0</span>';
+}
+
+function renderDigitBar(tda) {
+  var max = 0;
+  for (var i = 0; i < 10; i++) { if (tda.digitCounts[i] > max) max = tda.digitCounts[i]; }
+  var html = '<div style="display:flex;gap:4px;align-items:flex-end;height:80px;margin-top:12px">';
+  for (var j = 0; j < 10; j++) {
+    var h = max > 0 ? (tda.digitCounts[j] / max * 60) : 0;
+    var color = Math.abs(tda.digitCounts[j] - tda.expected) > tda.expected * 0.5 ? 'var(--red)' : 'var(--accent)';
+    html += '<div style="flex:1;text-align:center">' +
+      '<div style="height:' + h + 'px;background:' + color + ';border-radius:2px 2px 0 0;margin:0 auto;width:80%"></div>' +
+      '<div style="font-size:11px;color:var(--text-secondary);margin-top:2px">' + j + '</div>' +
+      '<div style="font-size:10px;color:var(--text-secondary)">' + tda.digitCounts[j] + '</div>' +
+      '</div>';
+  }
+  html += '</div><div style="font-size:11px;color:var(--text-secondary);margin-top:4px">Expected per digit: ' + tda.expected.toFixed(1) + '</div>';
+  return html;
+}
+
+function renderGauntlet(results, tdaResult) {
+  var area = document.getElementById('gauntlet-area');
+
+  var passed = 0, suspicious = 0, swallowed = 0, grey = 0;
+  for (var i = 0; i < results.length; i++) {
+    if (results[i].verdict === 'PASS') passed++;
+    else if (results[i].verdict === 'SUSPICIOUS') suspicious++;
+    else if (results[i].verdict === 'SWALLOWED') swallowed++;
+    else grey++;
+  }
+
+  var html = '<h2 style="margin-bottom:4px">The Gauntlet</h2>' +
+    '<p style="color:var(--text-secondary);margin-bottom:16px">Each study passes through the Staff\'s fangs. Illusions are consumed.</p>' +
+    '<div style="display:flex;gap:16px;margin-bottom:20px;flex-wrap:wrap">' +
+    '<div class="card" style="flex:1;min-width:120px;text-align:center"><div style="font-size:32px;color:var(--green);font-weight:bold">' + passed + '</div><div style="font-size:13px;color:var(--text-secondary)">Passed</div></div>' +
+    '<div class="card" style="flex:1;min-width:120px;text-align:center"><div style="font-size:32px;color:var(--amber);font-weight:bold">' + suspicious + '</div><div style="font-size:13px;color:var(--text-secondary)">Suspicious</div></div>' +
+    '<div class="card" style="flex:1;min-width:120px;text-align:center"><div style="font-size:32px;color:var(--red);font-weight:bold">' + swallowed + '</div><div style="font-size:13px;color:var(--text-secondary)">Swallowed</div></div>' +
+    '<div class="card" style="flex:1;min-width:120px;text-align:center"><div style="font-size:32px;color:var(--grey);font-weight:bold">' + grey + '</div><div style="font-size:13px;color:var(--text-secondary)">Not Assessed</div></div>' +
+    '</div>' +
+    '<div class="card" style="overflow-x:auto">' +
+    '<table style="width:100%;border-collapse:collapse;font-size:13px">' +
+    '<thead><tr>' +
+    '<th style="padding:8px;text-align:left;border-bottom:2px solid var(--border)">Study</th>' +
+    '<th style="padding:8px;text-align:center;border-bottom:2px solid var(--border);color:var(--red)">Fang 1: GRIM</th>' +
+    '<th style="padding:8px;text-align:center;border-bottom:2px solid var(--border);color:var(--amber)">Fang 2: SPRITE</th>' +
+    '<th style="padding:8px;text-align:center;border-bottom:2px solid var(--border);color:#9b59b6">Fang 3: statcheck</th>' +
+    '<th style="padding:8px;text-align:center;border-bottom:2px solid var(--border)">Verdict</th>' +
+    '</tr></thead><tbody>';
+
+  for (var ri = 0; ri < results.length; ri++) {
+    var r = results[ri];
+    var verdictBadge = r.verdict === 'PASS' ? '<span class="badge badge-pass">PASS</span>'
+      : r.verdict === 'SUSPICIOUS' ? '<span class="badge badge-suspicious">SUSPICIOUS</span>'
+      : r.verdict === 'SWALLOWED' ? '<span class="badge badge-swallowed">SWALLOWED</span>'
+      : '<span class="badge badge-skipped">N/A</span>';
+
+    html += '<tr style="border-bottom:1px solid var(--border)' + (r.verdict === 'SWALLOWED' ? ';opacity:0.6;text-decoration:line-through' : '') + '">' +
+      '<td style="padding:6px 8px;font-weight:500">' + r.study + '</td>' +
+      '<td style="padding:6px 8px;text-align:center">' + fangCell(r.grim) + '</td>' +
+      '<td style="padding:6px 8px;text-align:center">' + fangCell(r.sprite) + '</td>' +
+      '<td style="padding:6px 8px;text-align:center">' + fangCell(r.statcheck) + '</td>' +
+      '<td style="padding:6px 8px;text-align:center">' + verdictBadge + '</td>' +
+      '</tr>';
+  }
+
+  html += '</tbody></table></div>';
+
+  // TDA panel
+  var tdaBadgeClass = tdaResult.verdict === 'PASS' ? 'badge-pass' : tdaResult.verdict === 'WARN' ? 'badge-suspicious' : tdaResult.verdict === 'FAIL' ? 'badge-swallowed' : 'badge-skipped';
+  html += '<div class="card" style="margin-top:16px">' +
+    '<h3>Fang 4: Terminal Digit Analysis (Dataset-Level)</h3>' +
+    '<p style="color:var(--text-secondary);font-size:13px;margin-bottom:8px">' + tdaResult.explanation + '</p>' +
+    '<div style="display:flex;align-items:center;gap:16px">' +
+    '<span class="badge ' + tdaBadgeClass + '">' + tdaResult.verdict + '</span>' +
+    (tdaResult.chiSq != null ? '<span style="font-size:13px;color:var(--text-secondary)">\u03c7\u00b2(9) = ' + tdaResult.chiSq.toFixed(2) + ', p = ' + tdaResult.pValue.toFixed(4) + '</span>' : '') +
+    '</div>' +
+    (tdaResult.verdict !== 'SKIPPED' ? renderDigitBar(tdaResult) : '') +
+    '</div>';
+
+  html += '<p style="margin-top:16px;font-size:12px;color:var(--text-secondary);font-style:italic">' +
+    'Forensic flags are evidence for investigation, not proof of fraud. GRIM/SPRITE failures prove mathematical impossibility \u2014 but the cause could be transcription error, not fabrication. Always investigate flagged studies before drawing conclusions.' +
+    '</p>';
+
+  area.innerHTML = html;
+}
+
+/* ============================================================
+   TAB 3: SERPENT'S EYE HEATMAP
+   ============================================================ */
+
+function verdictBadgeHtml(verdict) {
+  var map = { PASS: 'badge-pass', SUSPICIOUS: 'badge-suspicious', SWALLOWED: 'badge-swallowed', GREY: 'badge-skipped' };
+  return '<span class="badge ' + (map[verdict] || 'badge-skipped') + '">' + verdict + '</span>';
+}
+
+function heatCell(fangResult, study, fang) {
+  if (!fangResult) return '<div style="background:var(--grey);border-radius:4px;padding:6px;text-align:center;color:#fff;font-size:11px">\u2014</div>';
+  var colors = { PASS: 'var(--green)', FAIL: 'var(--red)', DECISION_ERROR: 'var(--red)', SKIPPED: 'var(--grey)', WARN: 'var(--amber)' };
+  var color = colors[fangResult.result] || 'var(--grey)';
+  var label = fangResult.result === 'DECISION_ERROR' ? 'ERR' : fangResult.result;
+  return '<div class="heat-cell" style="background:' + color + ';border-radius:4px;padding:6px;text-align:center;color:#fff;font-size:11px;cursor:pointer;opacity:' + (fangResult.result === 'SKIPPED' ? '0.4' : '1') + '" data-explanation="' + escapeAttr(fangResult.explanation) + '" title="Click for detail">' + label + '</div>';
+}
+
+function renderHeatmap(results, tdaResult) {
+  var area = document.getElementById('heatmap-area');
+
+  // Sort by severity: SWALLOWED first, then SUSPICIOUS, then PASS, then GREY
+  var order = { SWALLOWED: 0, SUSPICIOUS: 1, PASS: 2, GREY: 3 };
+  var sorted = results.slice().sort(function(a, b) {
+    return ((order[a.verdict] !== undefined ? order[a.verdict] : 3) - (order[b.verdict] !== undefined ? order[b.verdict] : 3));
+  });
+
+  var html = '<h2 style="margin-bottom:4px">Serpent\'s Eye</h2>' +
+    '<p style="color:var(--text-secondary);margin-bottom:16px">Heatmap matrix \u2014 rows are studies, columns are fangs. Click any cell for detail.</p>' +
+    '<div style="display:flex;gap:12px;margin-bottom:12px;font-size:12px;color:var(--text-secondary)">' +
+    '<span><span style="display:inline-block;width:12px;height:12px;background:var(--green);border-radius:2px;vertical-align:middle"></span> PASS</span>' +
+    '<span><span style="display:inline-block;width:12px;height:12px;background:var(--amber);border-radius:2px;vertical-align:middle"></span> WARN</span>' +
+    '<span><span style="display:inline-block;width:12px;height:12px;background:var(--red);border-radius:2px;vertical-align:middle"></span> FAIL</span>' +
+    '<span><span style="display:inline-block;width:12px;height:12px;background:var(--grey);border-radius:2px;vertical-align:middle"></span> SKIPPED</span>' +
+    '</div>' +
+    '<div class="card" style="overflow-x:auto">' +
+    '<table style="width:100%;border-collapse:collapse;font-size:13px">' +
+    '<thead><tr>' +
+    '<th style="padding:8px;text-align:left;border-bottom:2px solid var(--border)">Study</th>' +
+    '<th style="padding:8px;text-align:center;border-bottom:2px solid var(--border);width:100px">GRIM</th>' +
+    '<th style="padding:8px;text-align:center;border-bottom:2px solid var(--border);width:100px">SPRITE</th>' +
+    '<th style="padding:8px;text-align:center;border-bottom:2px solid var(--border);width:100px">statcheck</th>' +
+    '<th style="padding:8px;text-align:center;border-bottom:2px solid var(--border);width:100px">Verdict</th>' +
+    '</tr></thead><tbody>';
+
+  for (var i = 0; i < sorted.length; i++) {
+    var r = sorted[i];
+    html += '<tr style="border-bottom:1px solid var(--border)">' +
+      '<td style="padding:6px 8px">' + r.study + '</td>' +
+      '<td style="padding:4px">' + heatCell(r.grim, r.study, 'GRIM') + '</td>' +
+      '<td style="padding:4px">' + heatCell(r.sprite, r.study, 'SPRITE') + '</td>' +
+      '<td style="padding:4px">' + heatCell(r.statcheck, r.study, 'statcheck') + '</td>' +
+      '<td style="padding:6px 8px;text-align:center">' + verdictBadgeHtml(r.verdict) + '</td>' +
+      '</tr>';
+  }
+
+  html += '</tbody></table></div>';
+  area.innerHTML = html;
+
+  // Click-to-expand detail
+  area.querySelectorAll('.heat-cell').forEach(function(cell) {
+    cell.addEventListener('click', function() {
+      var existing = cell.parentElement.querySelector('.heat-detail');
+      if (existing) { existing.remove(); return; }
+      var detail = document.createElement('div');
+      detail.className = 'heat-detail';
+      detail.style.cssText = 'font-size:12px;color:var(--text-secondary);padding:4px 8px;margin-top:4px;background:var(--bg);border-radius:4px';
+      detail.textContent = cell.getAttribute('data-explanation');
+      cell.parentElement.appendChild(detail);
+    });
+  });
+}
+
+/* ============================================================
+   TAB 4: FORENSIC REPORTS
+   ============================================================ */
+
+function reportFang(title, fangResult) {
+  if (!fangResult) return '';
+  var color = fangResult.result === 'PASS' ? 'var(--green)'
+    : (fangResult.result === 'FAIL' || fangResult.result === 'DECISION_ERROR') ? 'var(--red)'
+    : fangResult.result === 'SKIPPED' ? 'var(--grey)'
+    : 'var(--amber)';
+  return '<div style="padding:8px;margin-bottom:8px;border-left:3px solid ' + color + ';padding-left:12px">' +
+    '<div style="font-weight:500;margin-bottom:4px">' + title + ': <span style="color:' + color + '">' + fangResult.result + '</span></div>' +
+    '<div style="color:var(--text-secondary)">' + (fangResult.explanation || '') + '</div>' +
+    (fangResult.pComputed != null ? '<div style="color:var(--text-secondary)">Recomputed p = ' + fangResult.pComputed.toFixed(6) + '</div>' : '') +
+    (fangResult.closestSD != null ? '<div style="color:var(--text-secondary)">Closest achievable SD = ' + fangResult.closestSD.toFixed(4) + '</div>' : '') +
+    '</div>';
+}
+
+function renderReports(results, tdaResult) {
+  var area = document.getElementById('reports-area');
+  var html = '<h2 style="margin-bottom:4px">Forensic Reports</h2>' +
+    '<p style="color:var(--text-secondary);margin-bottom:12px">Detailed per-study forensic analysis. Click to expand.</p>' +
+    '<div style="margin-bottom:12px">' +
+    '<button class="btn btn-secondary" id="expandAllBtn" style="font-size:12px">Expand All</button>' +
+    '<button class="btn btn-secondary" id="collapseAllBtn" style="font-size:12px">Collapse All</button>' +
+    '<input type="text" id="reportSearch" placeholder="Filter by study name..." style="margin-left:8px;padding:4px 8px;background:var(--bg);border:1px solid var(--border);border-radius:4px;color:var(--text);font-size:13px">' +
+    '</div>';
+
+  for (var ri = 0; ri < results.length; ri++) {
+    var r = results[ri];
+    html += '<div class="card report-card" data-study="' + escapeAttr(r.study) + '" style="cursor:pointer">' +
+      '<div class="report-header" style="display:flex;justify-content:space-between;align-items:center">' +
+      '<span style="font-weight:600">' + r.study + '</span>' +
+      verdictBadgeHtml(r.verdict) +
+      '</div>' +
+      '<div class="report-body" style="display:none;margin-top:12px;font-size:13px">' +
+      reportFang('Fang 1: GRIM', r.grim) +
+      reportFang('Fang 2: SPRITE', r.sprite) +
+      reportFang('Fang 3: statcheck', r.statcheck) +
+      '</div>' +
+      '</div>';
+  }
+
+  area.innerHTML = html;
+
+  // Accordion
+  area.querySelectorAll('.report-header').forEach(function(h) {
+    h.addEventListener('click', function() {
+      var body = h.nextElementSibling;
+      body.style.display = body.style.display === 'none' ? 'block' : 'none';
+    });
+  });
+  document.getElementById('expandAllBtn').addEventListener('click', function() {
+    area.querySelectorAll('.report-body').forEach(function(b) { b.style.display = 'block'; });
+  });
+  document.getElementById('collapseAllBtn').addEventListener('click', function() {
+    area.querySelectorAll('.report-body').forEach(function(b) { b.style.display = 'none'; });
+  });
+  document.getElementById('reportSearch').addEventListener('input', function(e) {
+    var q = e.target.value.toLowerCase();
+    area.querySelectorAll('.report-card').forEach(function(c) {
+      c.style.display = c.getAttribute('data-study').toLowerCase().indexOf(q) >= 0 ? 'block' : 'none';
+    });
+  });
+}
+
+/* ============================================================
+   TAB 5: EXPORT + TRUTHCERT RECEIPT
+   ============================================================ */
+
+function sha256hex(text) {
+  var encoder = new TextEncoder();
+  var data = encoder.encode(text);
+  return crypto.subtle.digest('SHA-256', data).then(function(hash) {
+    return Array.from(new Uint8Array(hash)).map(function(b) { return b.toString(16).padStart(2, '0'); }).join('');
+  });
+}
+
+function downloadFile(content, filename, type) {
+  var blob = new Blob([content], { type: type });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function renderExport(results, tdaResult, originalRows) {
+  var area = document.getElementById('export-area');
+  area.innerHTML = '<h2 style="margin-bottom:4px">Export</h2>' +
+    '<p style="color:var(--text-secondary);margin-bottom:16px">Download cleaned data, flagged studies, or the full forensic receipt.</p>' +
+    '<div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:24px">' +
+    '<button class="btn btn-primary" id="exportCleanCSV">Download Cleaned CSV</button>' +
+    '<button class="btn btn-secondary" id="exportFlaggedCSV">Download Flagged Only</button>' +
+    '<button class="btn btn-secondary" id="exportReceipt">Download TruthCert Receipt</button>' +
+    '</div>' +
+    '<div class="card" id="receiptPreview"><h3>TruthCert Receipt Preview</h3><div id="receiptContent" style="margin-top:8px;font-family:var(--font-mono);font-size:12px;white-space:pre-wrap;color:var(--text-secondary)">Generating...</div></div>';
+
+  // Generate receipt
+  var inputStr = JSON.stringify(originalRows);
+  sha256hex(inputStr).then(function(hash) {
+    var passed = 0, suspicious = 0, swallowed = 0, notAssessed = 0;
+    for (var i = 0; i < results.length; i++) {
+      if (results[i].verdict === 'PASS') passed++;
+      else if (results[i].verdict === 'SUSPICIOUS') suspicious++;
+      else if (results[i].verdict === 'SWALLOWED') swallowed++;
+      else notAssessed++;
+    }
+    var receipt = {
+      tool: 'Asa',
+      version: ASA_VERSION,
+      timestamp: window.asaResults ? window.asaResults.timestamp : new Date().toISOString(),
+      inputHash: hash,
+      studyCount: results.length,
+      verdicts: { passed: passed, suspicious: suspicious, swallowed: swallowed, notAssessed: notAssessed },
+      tda: { verdict: tdaResult.verdict, chiSq: tdaResult.chiSq, pValue: tdaResult.pValue },
+      perStudy: results.map(function(r) { return { study: r.study, verdict: r.verdict, grim: r.grim ? r.grim.result : null, sprite: r.sprite ? r.sprite.result : null, statcheck: r.statcheck ? r.statcheck.result : null }; })
+    };
+    var el = document.getElementById('receiptContent');
+    if (el) el.textContent = JSON.stringify(receipt, null, 2);
+    window.asaReceipt = receipt;
+  });
+
+  // CSV export
+  document.getElementById('exportCleanCSV').addEventListener('click', function() {
+    var header = 'study,grim_result,sprite_result,statcheck_result,overall_verdict';
+    var lines = results.map(function(r) {
+      return [r.study, r.grim ? r.grim.result : '', r.sprite ? r.sprite.result : '', r.statcheck ? r.statcheck.result : '', r.verdict].join(',');
+    });
+    downloadFile(header + '\n' + lines.join('\n'), 'asa_results.csv', 'text/csv');
+  });
+  document.getElementById('exportFlaggedCSV').addEventListener('click', function() {
+    var flagged = results.filter(function(r) { return r.verdict === 'SUSPICIOUS' || r.verdict === 'SWALLOWED'; });
+    var header = 'study,grim_result,grim_explanation,sprite_result,statcheck_result,statcheck_explanation,verdict';
+    var lines = flagged.map(function(r) {
+      return [r.study, r.grim ? r.grim.result : '', '"' + ((r.grim ? r.grim.explanation : '') || '').replace(/"/g,'""') + '"',
+        r.sprite ? r.sprite.result : '', r.statcheck ? r.statcheck.result : '',
+        '"' + ((r.statcheck ? r.statcheck.explanation : '') || '').replace(/"/g,'""') + '"',
+        r.verdict].join(',');
+    });
+    downloadFile(header + '\n' + lines.join('\n'), 'asa_flagged.csv', 'text/csv');
+  });
+  document.getElementById('exportReceipt').addEventListener('click', function() {
+    if (window.asaReceipt) downloadFile(JSON.stringify(window.asaReceipt, null, 2), 'asa_truthcert_receipt.json', 'application/json');
+  });
+}
+
+</script>
+</body>
+</html>
