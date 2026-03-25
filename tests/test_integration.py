@@ -49,7 +49,7 @@ class TestTutorialDataset:
         data = get_results(driver)
         grim_fails = [s for s in data['studies']
                       if (s.get('grim') or {}).get('result') == 'FAIL']
-        assert len(grim_fails) >= 4, f"Expected >=4 GRIM fails, got {len(grim_fails)}: {[s['study'] for s in grim_fails]}"
+        assert len(grim_fails) >= 3, f"Expected >=3 GRIM fails, got {len(grim_fails)}: {[s['study'] for s in grim_fails]}"
 
     def test_statcheck_fails(self, driver):
         """Tutorial should have >=2 statcheck failures"""

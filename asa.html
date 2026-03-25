@@ -65,6 +65,11 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); line
 .modal label { display: block; margin-bottom: 12px; font-size: 13px; color: var(--text-secondary); }
 .modal input, .modal select { width: 100%; padding: 6px 10px; margin-top: 4px; background: var(--bg);
   border: 1px solid var(--border); border-radius: 4px; color: var(--text); font-size: 14px; }
+/* === Focus indicators === */
+.btn:focus-visible, .tab-btn:focus-visible, input:focus-visible, select:focus-visible,
+textarea:focus-visible, .report-card:focus-visible, .heat-cell:focus-visible {
+  outline: 2px solid var(--accent); outline-offset: 2px;
+}
 /* === Animations === */
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; } }
 /* === Print === */
@@ -86,16 +91,16 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); line
 
 <!-- Tab Bar -->
 <div class="tab-bar" role="tablist">
-  <button class="tab-btn active" data-tab="entry" role="tab" aria-selected="true">Data Entry</button>
-  <button class="tab-btn" data-tab="gauntlet" role="tab" aria-selected="false">The Gauntlet</button>
-  <button class="tab-btn" data-tab="heatmap" role="tab" aria-selected="false">Serpent's Eye</button>
-  <button class="tab-btn" data-tab="reports" role="tab" aria-selected="false">Forensic Reports</button>
-  <button class="tab-btn" data-tab="export" role="tab" aria-selected="false">Export</button>
-  <button class="tab-btn" data-tab="about" role="tab" aria-selected="false">About</button>
+  <button class="tab-btn active" data-tab="entry" role="tab" aria-selected="true" aria-controls="tab-entry" id="btn-entry" tabindex="0">Data Entry</button>
+  <button class="tab-btn" data-tab="gauntlet" role="tab" aria-selected="false" aria-controls="tab-gauntlet" id="btn-gauntlet" tabindex="-1">The Gauntlet</button>
+  <button class="tab-btn" data-tab="heatmap" role="tab" aria-selected="false" aria-controls="tab-heatmap" id="btn-heatmap" tabindex="-1">Serpent's Eye</button>
+  <button class="tab-btn" data-tab="reports" role="tab" aria-selected="false" aria-controls="tab-reports" id="btn-reports" tabindex="-1">Forensic Reports</button>
+  <button class="tab-btn" data-tab="export" role="tab" aria-selected="false" aria-controls="tab-export" id="btn-export" tabindex="-1">Export</button>
+  <button class="tab-btn" data-tab="about" role="tab" aria-selected="false" aria-controls="tab-about" id="btn-about" tabindex="-1">About</button>
 </div>
 
 <!-- Tab 1: Data Entry -->
-<div class="tab-content active" id="tab-entry" data-tab="entry" role="tabpanel">
+<div class="tab-content active" id="tab-entry" data-tab="entry" role="tabpanel" aria-labelledby="btn-entry">
   <h2>Load Study Data</h2>
   <p style="color:var(--text-secondary);margin-bottom:16px">
     Paste CSV data, upload a file, enter manually, or load a demo dataset.
@@ -104,27 +109,27 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); line
 </div>
 
 <!-- Tab 2: The Gauntlet -->
-<div class="tab-content" id="tab-gauntlet" data-tab="gauntlet" role="tabpanel">
+<div class="tab-content" id="tab-gauntlet" data-tab="gauntlet" role="tabpanel" aria-labelledby="btn-gauntlet">
   <div id="gauntlet-area"></div>
 </div>
 
 <!-- Tab 3: Serpent's Eye -->
-<div class="tab-content" id="tab-heatmap" data-tab="heatmap" role="tabpanel">
+<div class="tab-content" id="tab-heatmap" data-tab="heatmap" role="tabpanel" aria-labelledby="btn-heatmap">
   <div id="heatmap-area"></div>
 </div>
 
 <!-- Tab 4: Forensic Reports -->
-<div class="tab-content" id="tab-reports" data-tab="reports" role="tabpanel">
+<div class="tab-content" id="tab-reports" data-tab="reports" role="tabpanel" aria-labelledby="btn-reports">
   <div id="reports-area"></div>
 </div>
 
 <!-- Tab 5: Export -->
-<div class="tab-content" id="tab-export" data-tab="export" role="tabpanel">
+<div class="tab-content" id="tab-export" data-tab="export" role="tabpanel" aria-labelledby="btn-export">
   <div id="export-area"></div>
 </div>
 
 <!-- Tab 6: About -->
-<div class="tab-content" id="tab-about" data-tab="about" role="tabpanel">
+<div class="tab-content" id="tab-about" data-tab="about" role="tabpanel" aria-labelledby="btn-about">
   <h2 style="margin-bottom:4px">About Asa</h2>
   <p style="color:var(--text-secondary);margin-bottom:16px;font-style:italic;direction:rtl">
     &#x641;&#x648;&#x642;&#x639; &#x627;&#x644;&#x62D;&#x642; &#x648;&#x628;&#x637;&#x644; &#x645;&#x627; &#x643;&#x627;&#x646;&#x648;&#x627; &#x64A;&#x639;&#x645;&#x644;&#x648;&#x646;
@@ -136,7 +141,7 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); line
   <!-- Methodology overview -->
   <div class="card" style="margin-bottom:16px">
     <h3 style="color:var(--accent);margin-bottom:12px">Methodology</h3>
-    <p style="margin-bottom:12px">Asa applies seven complementary forensic tests ("fangs") to your dataset. Five are per-study (GRIM, SPRITE, statcheck, GRIMMER) and three are dataset-level (TDA, Benford's Law, cross-study duplication). Each fang probes a different dimension of data plausibility. Studies are classified by a severity-weighted composite verdict.</p>
+    <p style="margin-bottom:12px">Asa applies seven complementary forensic tests ("fangs") to your dataset. Four are per-study (GRIM, GRIMMER, SPRITE, statcheck) and three are dataset-level (TDA, Benford's Law, cross-study duplication). Each fang probes a different dimension of data plausibility. Studies are classified by a severity-weighted composite verdict.</p>
     <div style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:16px;margin-bottom:12px;font-family:var(--font-mono);font-size:12px;line-height:1.8;color:var(--text-secondary)">
       <div style="text-align:center;margin-bottom:8px;color:var(--accent);font-size:13px">Workflow</div>
       <div>1. Data Entry &rarr; parse CSV / manual rows (mean, SD, N, p-value, test stat)</div>
@@ -189,6 +194,7 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); line
     <h3 style="color:var(--accent);margin-bottom:8px">Fang 2: SPRITE (Sample Parameter Reconstruction via Iterative Techniques)</h3>
     <p style="margin-bottom:8px">SPRITE attempts to reconstruct plausible individual-level data that could produce the reported mean and SD. If no valid dataset can be found within bounded iterations, the reported statistics are flagged as potentially impossible for the given scale constraints.</p>
     <p style="margin-bottom:4px;font-size:13px"><strong>Applicability:</strong> Requires mean, SD, N, and scale bounds. Skipped if scale max is unset.</p>
+    <p style="margin-bottom:4px;font-size:13px"><strong>Tier:</strong> B (Strong evidence) &mdash; SPRITE uses stochastic search; failure after 10,000 iterations indicates high implausibility but not mathematical proof of impossibility.</p>
     <p style="font-size:13px;color:var(--text-secondary)">Heathers, J. A. J., Anaya, J., van der Zee, T., &amp; Brown, N. J. L. (2018). Recovering data from summary statistics: Sample Parameter Reconstruction via Iterative TEchniques (SPRITE). <em>PeerJ Preprints</em>, 6, e26968v1.</p>
   </div>
 
@@ -196,7 +202,7 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); line
     <h3 style="color:var(--accent);margin-bottom:8px">Fang 3: statcheck</h3>
     <p style="margin-bottom:8px">statcheck recomputes p-values from reported test statistics (t, F, &chi;&sup2;, z, r) and compares them against reported p-values. Discrepancies beyond rounding tolerance indicate reporting errors; gross discrepancies that change statistical significance are flagged as decision errors.</p>
     <p style="margin-bottom:4px;font-size:13px"><strong>Applicability:</strong> Requires test statistic + df + reported p-value. Supports one-tailed and inequality formats.</p>
-    <p style="font-size:13px;color:var(--text-secondary)">Epskamp, S., &amp; Nuijten, M. B. (2016). statcheck: Extract statistics from articles and recompute p values. <em>R package version 1.3.0</em>.</p>
+    <p style="font-size:13px;color:var(--text-secondary)">Nuijten, M. B., Hartgerink, C. H. J., van Assen, M. A. L. M., Epskamp, S., &amp; Wicherts, J. M. (2016). The prevalence of statistical reporting errors in psychology (1985&ndash;2013). <em>Behavior Research Methods</em>, 48, 1205&ndash;1226. &bull; R package: Epskamp &amp; Nuijten (2016).</p>
   </div>
 
   <div class="card" style="margin-bottom:12px">
@@ -226,7 +232,7 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); line
     <h3 style="color:var(--accent);margin-bottom:8px">Fang 7: Cross-Study Duplication</h3>
     <p style="margin-bottom:8px">This novel method detects suspiciously identical baseline values across study pairs &mdash; a hallmark of copy-paste data fabrication. For each pair of studies, Asa compares all shared numeric fields (n, mean, SD for both arms). Pairs sharing &ge;4 identical values out of 6 comparable fields are flagged as potentially duplicated.</p>
     <p style="margin-bottom:4px;font-size:13px"><strong>Applicability:</strong> Dataset-level. Requires &ge;2 studies with comparable numeric data.</p>
-    <p style="margin-bottom:4px;font-size:13px"><strong>Note:</strong> Legitimate duplication can occur (e.g., same trial reported in multiple publications). Flagged pairs warrant investigation, not automatic rejection.</p>
+    <p style="margin-bottom:4px;font-size:13px"><strong>Note:</strong> Legitimate duplication can occur (e.g., same trial reported in multiple publications, or RCTs with similar designs yielding similar sample sizes). Flagged pairs warrant investigation, not automatic rejection. The 4/6 threshold is exploratory and has not been calibrated via simulation; false-positive rates depend on the homogeneity of the study domain.</p>
   </div>
 
   <!-- Technical details -->
@@ -285,15 +291,38 @@ const ASA_VERSION = '2.0.0';
 const LS_PREFIX = 'asa_';
 
 // -- Tab switching --
+function activateTab(btn) {
+  var allBtns = document.querySelectorAll('.tab-btn');
+  allBtns.forEach(function(b) { b.classList.remove('active'); b.setAttribute('aria-selected', 'false'); b.setAttribute('tabindex', '-1'); });
+  document.querySelectorAll('.tab-content').forEach(function(tc) { tc.classList.remove('active'); });
+  btn.classList.add('active');
+  btn.setAttribute('aria-selected', 'true');
+  btn.setAttribute('tabindex', '0');
+  btn.focus();
+  var target = btn.getAttribute('data-tab');
+  document.querySelector('.tab-content[data-tab="' + target + '"]').classList.add('active');
+}
 document.querySelectorAll('.tab-btn').forEach(function(btn) {
-  btn.addEventListener('click', function() {
-    document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); b.setAttribute('aria-selected', 'false'); });
-    document.querySelectorAll('.tab-content').forEach(function(tc) { tc.classList.remove('active'); });
-    btn.classList.add('active');
-    btn.setAttribute('aria-selected', 'true');
-    var target = btn.getAttribute('data-tab');
-    document.querySelector('.tab-content[data-tab="' + target + '"]').classList.add('active');
-  });
+  btn.addEventListener('click', function() { activateTab(btn); });
+});
+// Arrow key navigation for tabs (WAI-ARIA tabs pattern)
+document.querySelector('.tab-bar').addEventListener('keydown', function(e) {
+  var tabs = Array.from(document.querySelectorAll('.tab-btn'));
+  var idx = tabs.indexOf(document.activeElement);
+  if (idx < 0) return;
+  if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+    e.preventDefault();
+    activateTab(tabs[(idx + 1) % tabs.length]);
+  } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+    e.preventDefault();
+    activateTab(tabs[(idx - 1 + tabs.length) % tabs.length]);
+  } else if (e.key === 'Home') {
+    e.preventDefault();
+    activateTab(tabs[0]);
+  } else if (e.key === 'End') {
+    e.preventDefault();
+    activateTab(tabs[tabs.length - 1]);
+  }
 });
 
 // -- Theme toggle --
@@ -311,9 +340,24 @@ document.getElementById('themeToggle').addEventListener('click', function() {
 })();
 
 // -- Settings modal --
-document.getElementById('settingsBtn').addEventListener('click', function() { document.getElementById('settingsModal').classList.add('open'); });
-document.getElementById('settingsClose').addEventListener('click', function() { document.getElementById('settingsModal').classList.remove('open'); });
-document.getElementById('settingsModal').addEventListener('click', function(e) { if (e.target === e.currentTarget) e.currentTarget.classList.remove('open'); });
+function openSettingsModal() {
+  document.getElementById('settingsModal').classList.add('open');
+  document.getElementById('settingsModal').setAttribute('role', 'dialog');
+  document.getElementById('settingsModal').setAttribute('aria-modal', 'true');
+  document.getElementById('setting-dataType').focus();
+}
+function closeSettingsModal() {
+  document.getElementById('settingsModal').classList.remove('open');
+  document.getElementById('settingsBtn').focus();
+}
+document.getElementById('settingsBtn').addEventListener('click', openSettingsModal);
+document.getElementById('settingsClose').addEventListener('click', closeSettingsModal);
+document.getElementById('settingsModal').addEventListener('click', function(e) { if (e.target === e.currentTarget) closeSettingsModal(); });
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape' && document.getElementById('settingsModal').classList.contains('open')) {
+    closeSettingsModal();
+  }
+});
 
 function getSettings() {
   return {
@@ -504,17 +548,16 @@ function grimCheck(mean, n, items, decimals, rounding) {
   var scale = Math.pow(10, decimals);
   var halfUnit = 0.5 / scale;
 
-  function isConsistent(m) {
-    var sum = m * effectiveN;
-    var remainder = Math.abs(sum - Math.round(sum));
-    return remainder < 1e-6; // strict integer-closeness (float epsilon only)
-  }
-
   var pass;
   if (rounding === 'up_or_down') {
-    pass = isConsistent(mean) || isConsistent(mean + halfUnit) || isConsistent(mean - halfUnit);
+    // Interval check: does [mean - halfUnit, mean + halfUnit] contain any multiple of 1/effectiveN?
+    var loSum = (mean - halfUnit) * effectiveN;
+    var hiSum = (mean + halfUnit) * effectiveN;
+    // The interval contains an integer if ceil(loSum) <= floor(hiSum), with float tolerance
+    pass = Math.ceil(loSum - 1e-9) <= Math.floor(hiSum + 1e-9);
   } else {
-    pass = isConsistent(mean);
+    var sum0 = mean * effectiveN;
+    pass = Math.abs(sum0 - Math.round(sum0)) < 1e-6;
   }
 
   var sum = mean * effectiveN;
@@ -862,7 +905,7 @@ function benfordCheck(firstDigits) {
   var total = 0;
   for (var j = 0; j < 9; j++) total += counts[j];
 
-  if (total < 30) {
+  if (total < 100) {
     return {
       verdict: 'SKIPPED',
       chiSq: null,
@@ -870,7 +913,7 @@ function benfordCheck(firstDigits) {
       total: total,
       observed: counts,
       expected: null,
-      explanation: 'Only ' + total + ' first digits (need \u226530 for meaningful test)'
+      explanation: 'Only ' + total + ' first digits (need \u2265100 for reliable chi-squared with df=8)'
     };
   }
 
@@ -1014,11 +1057,43 @@ var COLUMN_ALIASES = {
   tailed:    ['tailed', 'tails']
 };
 
+function splitCSVLine(line, sep) {
+  // RFC 4180-aware: handles quoted fields containing commas, quotes, and newlines
+  var fields = [];
+  var current = '';
+  var inQuotes = false;
+  for (var i = 0; i < line.length; i++) {
+    var ch = line.charAt(i);
+    if (inQuotes) {
+      if (ch === '"') {
+        if (i + 1 < line.length && line.charAt(i + 1) === '"') {
+          current += '"'; i++; // escaped quote
+        } else {
+          inQuotes = false; // end of quoted field
+        }
+      } else {
+        current += ch;
+      }
+    } else {
+      if (ch === '"' && current.length === 0) {
+        inQuotes = true;
+      } else if (ch === sep) {
+        fields.push(current.trim());
+        current = '';
+      } else {
+        current += ch;
+      }
+    }
+  }
+  fields.push(current.trim());
+  return fields;
+}
+
 function parseCSV(text) {
   var lines = text.trim().split(/\r?\n/).filter(function(l) { return l.trim(); });
   if (lines.length < 2) return { headers: [], rows: [], mapping: {} };
   var sep = lines[0].indexOf('\t') >= 0 ? '\t' : ',';
-  var rawHeaders = lines[0].split(sep).map(function(h) { return h.trim().replace(/^["']|["']$/g, ''); });
+  var rawHeaders = splitCSVLine(lines[0], sep).map(function(h) { return h.replace(/^["']|["']$/g, ''); });
 
   // Fuzzy column mapping: prefer longer alias matches first
   var mapping = {};
@@ -1041,7 +1116,7 @@ function parseCSV(text) {
 
   var rows = [];
   for (var i = 1; i < lines.length; i++) {
-    var cells = lines[i].split(sep).map(function(c) { return c.trim().replace(/^["']|["']$/g, ''); });
+    var cells = splitCSVLine(lines[i], sep).map(function(c) { return c.replace(/^["']|["']$/g, ''); });
     var row = {};
     var mfields = Object.keys(mapping);
     for (var mfi = 0; mfi < mfields.length; mfi++) {
@@ -1098,18 +1173,19 @@ var DEMO_TUTORIAL = [
 ];
 
 var DEMO_FUJII = [
-  { study:'Fujii 2000a', n_t:30, n_c:30, mean_t:54.3, mean_c:53.7, sd_t:8.2, sd_c:7.9, data_type:'continuous', test_stat:2.31, stat_type:'t', df:58, p_reported:'0.001', tailed:2, _p_str:'0.001', _note:'statcheck: t(58)=2.31->p~0.024, reported 0.001' },
-  { study:'Fujii 2001a', n_t:40, n_c:40, mean_t:62.7, mean_c:61.4, sd_t:9.1, sd_c:8.8, data_type:'continuous', test_stat:1.85, stat_type:'t', df:78, p_reported:'0.02', tailed:2, _p_str:'0.02', _note:'statcheck: t(78)=1.85->p~0.068, reported 0.02 -- decision error' },
-  { study:'Fujii 2002a', n_t:25, n_c:25, mean_t:3.24, mean_c:2.87, sd_t:0.81, sd_c:0.93, data_type:'discrete', _mean_t_str:'3.24', _mean_c_str:'2.87', _note:'GRIM: 3.24x25=81.0 PASS but 2.87x25=71.75 FAIL' },
-  { study:'Fujii 2003a', n_t:20, n_c:20, mean_t:2.45, mean_c:2.13, sd_t:0.74, sd_c:0.68, data_type:'discrete', _mean_t_str:'2.45', _mean_c_str:'2.13', _note:'GRIM: 2.45x20=49.0 PASS; 2.13x20=42.6 FAIL' },
-  { study:'Fujii 2003b', n_t:30, n_c:30, mean_t:1.87, mean_c:2.43, sd_t:0.52, sd_c:0.61, data_type:'discrete', _mean_t_str:'1.87', _mean_c_str:'2.43', _note:'GRIM: 1.87x30=56.1 FAIL' },
-  { study:'Fujii 2004a', n_t:35, n_c:35, mean_t:58.6, mean_c:57.9, sd_t:7.3, sd_c:7.1, data_type:'continuous', test_stat:0.68, stat_type:'t', df:68, p_reported:'0.04', tailed:2, _p_str:'0.04', _note:'statcheck: t(68)=0.68->p~0.499, reported 0.04 -- gross mismatch' },
-  { study:'Fujii 2004b', n_t:25, n_c:25, mean_t:3.16, mean_c:2.92, sd_t:0.88, sd_c:0.79, data_type:'discrete', _mean_t_str:'3.16', _mean_c_str:'2.92', _note:'GRIM: 3.16x25=79.0 PASS; 2.92x25=73.0 PASS -- clean on GRIM' },
-  { study:'Fujii 2005a', n_t:40, n_c:40, mean_t:2.63, mean_c:3.17, sd_t:0.71, sd_c:0.83, data_type:'discrete', _mean_t_str:'2.63', _mean_c_str:'3.17', _note:'GRIM: 2.63x40=105.2 FAIL' },
-  { study:'Fujii 2005b', n_t:20, n_c:20, mean_t:61.4, mean_c:60.8, sd_t:6.5, sd_c:6.2, data_type:'continuous', test_stat:1.42, stat_type:'t', df:38, p_reported:'0.03', tailed:2, _p_str:'0.03', _note:'statcheck: t(38)=1.42->p~0.164, reported 0.03 -- decision error' },
-  { study:'Fujii 2006a', n_t:30, n_c:30, mean_t:3.47, mean_c:2.83, sd_t:0.92, sd_c:0.86, data_type:'discrete', _mean_t_str:'3.47', _mean_c_str:'2.83', _note:'GRIM: 3.47x30=104.1 FAIL' },
-  { study:'Fujii 2006b', n_t:25, n_c:25, mean_t:55.8, mean_c:54.6, sd_t:8.4, sd_c:7.7, data_type:'continuous', test_stat:2.05, stat_type:'t', df:48, p_reported:'0.001', tailed:2, _p_str:'0.001', _note:'statcheck: t(48)=2.05->p~0.046, reported 0.001 -- decision error' },
-  { study:'Fujii 2007a', n_t:35, n_c:35, mean_t:2.74, mean_c:3.26, sd_t:0.65, sd_c:0.78, data_type:'discrete', _mean_t_str:'2.74', _mean_c_str:'3.26', _note:'GRIM: 2.74x35=95.9 FAIL' }
+  // Fictional case study inspired by known retraction patterns. Author names are fictional.
+  { study:'Tanaka 2000a', n_t:30, n_c:30, mean_t:54.3, mean_c:53.7, sd_t:8.2, sd_c:7.9, data_type:'continuous', test_stat:2.31, stat_type:'t', df:58, p_reported:'0.001', tailed:2, _p_str:'0.001', _note:'statcheck: t(58)=2.31->p~0.024, reported 0.001' },
+  { study:'Tanaka 2001a', n_t:40, n_c:40, mean_t:62.7, mean_c:61.4, sd_t:9.1, sd_c:8.8, data_type:'continuous', test_stat:1.85, stat_type:'t', df:78, p_reported:'0.02', tailed:2, _p_str:'0.02', _note:'statcheck: t(78)=1.85->p~0.068, reported 0.02 -- decision error' },
+  { study:'Tanaka 2002a', n_t:25, n_c:25, mean_t:3.24, mean_c:2.87, sd_t:0.81, sd_c:0.93, data_type:'discrete', _mean_t_str:'3.24', _mean_c_str:'2.87', _note:'GRIM: 3.24x25=81.0 PASS but 2.87x25=71.75 FAIL' },
+  { study:'Tanaka 2003a', n_t:20, n_c:20, mean_t:2.45, mean_c:2.13, sd_t:0.74, sd_c:0.68, data_type:'discrete', _mean_t_str:'2.45', _mean_c_str:'2.13', _note:'GRIM: 2.45x20=49.0 PASS; 2.13x20=42.6 FAIL' },
+  { study:'Tanaka 2003b', n_t:30, n_c:30, mean_t:1.87, mean_c:2.43, sd_t:0.52, sd_c:0.61, data_type:'discrete', _mean_t_str:'1.87', _mean_c_str:'2.43', _note:'GRIM: 1.87x30=56.1 FAIL' },
+  { study:'Tanaka 2004a', n_t:35, n_c:35, mean_t:58.6, mean_c:57.9, sd_t:7.3, sd_c:7.1, data_type:'continuous', test_stat:0.68, stat_type:'t', df:68, p_reported:'0.04', tailed:2, _p_str:'0.04', _note:'statcheck: t(68)=0.68->p~0.499, reported 0.04 -- gross mismatch' },
+  { study:'Tanaka 2004b', n_t:25, n_c:25, mean_t:3.16, mean_c:2.92, sd_t:0.88, sd_c:0.79, data_type:'discrete', _mean_t_str:'3.16', _mean_c_str:'2.92', _note:'GRIM: 3.16x25=79.0 PASS; 2.92x25=73.0 PASS -- clean on GRIM' },
+  { study:'Tanaka 2005a', n_t:40, n_c:40, mean_t:2.63, mean_c:3.17, sd_t:0.71, sd_c:0.83, data_type:'discrete', _mean_t_str:'2.63', _mean_c_str:'3.17', _note:'GRIM: 2.63x40=105.2 FAIL' },
+  { study:'Tanaka 2005b', n_t:20, n_c:20, mean_t:61.4, mean_c:60.8, sd_t:6.5, sd_c:6.2, data_type:'continuous', test_stat:1.42, stat_type:'t', df:38, p_reported:'0.03', tailed:2, _p_str:'0.03', _note:'statcheck: t(38)=1.42->p~0.164, reported 0.03 -- decision error' },
+  { study:'Tanaka 2006a', n_t:30, n_c:30, mean_t:3.47, mean_c:2.83, sd_t:0.92, sd_c:0.86, data_type:'discrete', _mean_t_str:'3.47', _mean_c_str:'2.83', _note:'GRIM: 3.47x30=104.1 FAIL' },
+  { study:'Tanaka 2006b', n_t:25, n_c:25, mean_t:55.8, mean_c:54.6, sd_t:8.4, sd_c:7.7, data_type:'continuous', test_stat:2.05, stat_type:'t', df:48, p_reported:'0.001', tailed:2, _p_str:'0.001', _note:'statcheck: t(48)=2.05->p~0.046, reported 0.001 -- decision error' },
+  { study:'Tanaka 2007a', n_t:35, n_c:35, mean_t:2.74, mean_c:3.26, sd_t:0.65, sd_c:0.78, data_type:'discrete', _mean_t_str:'2.74', _mean_c_str:'3.26', _note:'GRIM: 2.74x35=95.9 FAIL' }
 ];
 
 /* ============================================================
@@ -1120,7 +1196,7 @@ var DEMO_FUJII = [
   var area = document.getElementById('data-entry-area');
   area.innerHTML = '<div style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap">' +
     '<button class="btn btn-secondary" id="loadTutorial">Load Tutorial Dataset</button>' +
-    '<button class="btn btn-secondary" id="loadFujii">Load Case Study: Fujii</button>' +
+    '<button class="btn btn-secondary" id="loadFujii">Load Case Study: Fraud Pattern</button>' +
     '</div>' +
     '<div class="card">' +
     '<h3 style="margin-bottom:8px">Paste CSV Data</h3>' +
@@ -1161,7 +1237,7 @@ var DEMO_FUJII = [
       for (var fi = 0; fi < fields.length; fi++) {
         var f = fields[fi];
         var v = row[f];
-        html += '<td style="padding:3px 8px;border-bottom:1px solid var(--border);color:var(--text-secondary)">' + (v !== null && v !== undefined ? v : '') + '</td>';
+        html += '<td style="padding:3px 8px;border-bottom:1px solid var(--border);color:var(--text-secondary)">' + (v !== null && v !== undefined ? escapeAttr(String(v)) : '') + '</td>';
       }
       html += '</tr>';
     }
@@ -1189,7 +1265,7 @@ var DEMO_FUJII = [
     for (var i = 0; i < mfields.length; i++) {
       var mfield = mfields[i];
       var idx = parsed.mapping[mfield];
-      mhtml += '<tr><td style="padding:2px 8px;color:var(--accent)">' + mfield + '</td><td style="padding:2px 8px">\u2190 column "' + parsed.headers[idx] + '" (col ' + idx + ')</td></tr>';
+      mhtml += '<tr><td style="padding:2px 8px;color:var(--accent)">' + mfield + '</td><td style="padding:2px 8px">\u2190 column "' + escapeAttr(parsed.headers[idx]) + '" (col ' + idx + ')</td></tr>';
     }
     mhtml += '</table>';
     document.getElementById('mappingTable').innerHTML = mhtml;
@@ -1288,7 +1364,10 @@ function runFullAnalysis(rows) {
         var grMeanStr = row['_mean' + grArm + '_str'] || String(grmean);
         if (grn != null && grmean != null && grsd != null && grn >= 2) {
           var grDec = settings.decimals === 'auto' ? countDecimals(grMeanStr) : parseInt(settings.decimals);
-          var gr = grimmerCheck(grsd, grn, grmean, items, grDec);
+          // Use GRIM-validated mean: nearest integer sum / effectiveN
+          var grEffN = grn * items;
+          var grValidMean = Math.round(grmean * grEffN) / grEffN;
+          var gr = grimmerCheck(grsd, grn, grValidMean, items, grDec);
           var grObj = { arm: grArm === '_t' ? 'treatment' : 'control' };
           var grKeys = Object.keys(gr);
           for (var grki = 0; grki < grKeys.length; grki++) grObj[grKeys[grki]] = gr[grKeys[grki]];
@@ -1382,10 +1461,10 @@ function runFullAnalysis(rows) {
 
     if (!anyApplicable) {
       r.verdict = 'GREY';
-    } else if (grimFail || grimmerFail || spriteFail) {
-      r.verdict = 'SWALLOWED'; // Tier A: conclusive impossibility (GRIM, GRIMMER, SPRITE)
-    } else if (scDecisionErr) {
-      r.verdict = 'SWALLOWED'; // Tier B: DECISION_ERROR always SWALLOWED per spec
+    } else if (grimFail || grimmerFail) {
+      r.verdict = 'SWALLOWED'; // Tier A: conclusive impossibility (GRIM, GRIMMER)
+    } else if (spriteFail || scDecisionErr) {
+      r.verdict = 'SWALLOWED'; // Tier B: strong evidence (SPRITE implausibility, statcheck decision error)
     } else if (scFail) {
       r.verdict = 'SUSPICIOUS'; // Tier C: mismatch without threshold crossing
     } else {
@@ -1500,7 +1579,7 @@ function renderGauntlet(results, tdaResult, benfordResult, dupResult) {
       : '<span class="badge badge-skipped">N/A</span>';
 
     html += '<tr style="border-bottom:1px solid var(--border)' + (r.verdict === 'SWALLOWED' ? ';opacity:0.6;text-decoration:line-through' : '') + '">' +
-      '<td style="padding:6px 8px;font-weight:500">' + r.study + '</td>' +
+      '<td style="padding:6px 8px;font-weight:500">' + escapeAttr(r.study) + '</td>' +
       '<td style="padding:6px 8px;text-align:center">' + fangCell(r.grim) + '</td>' +
       '<td style="padding:6px 8px;text-align:center">' + fangCell(r.sprite) + '</td>' +
       '<td style="padding:6px 8px;text-align:center">' + fangCell(r.statcheck) + '</td>' +
@@ -1572,8 +1651,8 @@ function renderGauntlet(results, tdaResult, benfordResult, dupResult) {
     for (var dpi = 0; dpi < dupResult.flaggedPairs.length; dpi++) {
       var dp = dupResult.flaggedPairs[dpi];
       html += '<tr style="border-bottom:1px solid var(--border);color:var(--red)">' +
-        '<td style="padding:4px 8px">' + dp.study1 + '</td>' +
-        '<td style="padding:4px 8px">' + dp.study2 + '</td>' +
+        '<td style="padding:4px 8px">' + escapeAttr(dp.study1) + '</td>' +
+        '<td style="padding:4px 8px">' + escapeAttr(dp.study2) + '</td>' +
         '<td style="padding:4px 8px">' + dp.matches + '/' + dp.compared + '</td>' +
         '<td style="padding:4px 8px">' + dp.matchedFields.join(', ') + '</td></tr>';
     }
@@ -1636,7 +1715,7 @@ function renderHeatmap(results, tdaResult) {
   for (var i = 0; i < sorted.length; i++) {
     var r = sorted[i];
     html += '<tr style="border-bottom:1px solid var(--border)">' +
-      '<td style="padding:6px 8px">' + r.study + '</td>' +
+      '<td style="padding:6px 8px">' + escapeAttr(r.study) + '</td>' +
       '<td style="padding:4px">' + heatCell(r.grim, r.study, 'GRIM') + '</td>' +
       '<td style="padding:4px">' + heatCell(r.sprite, r.study, 'SPRITE') + '</td>' +
       '<td style="padding:4px">' + heatCell(r.statcheck, r.study, 'statcheck') + '</td>' +
@@ -1674,7 +1753,7 @@ function reportFang(title, fangResult) {
     : 'var(--amber)';
   return '<div style="padding:8px;margin-bottom:8px;border-left:3px solid ' + color + ';padding-left:12px">' +
     '<div style="font-weight:500;margin-bottom:4px">' + title + ': <span style="color:' + color + '">' + fangResult.result + '</span></div>' +
-    '<div style="color:var(--text-secondary)">' + (fangResult.explanation || '') + '</div>' +
+    '<div style="color:var(--text-secondary)">' + escapeAttr(fangResult.explanation || '') + '</div>' +
     (fangResult.pComputed != null ? '<div style="color:var(--text-secondary)">Recomputed p = ' + fangResult.pComputed.toFixed(6) + '</div>' : '') +
     (fangResult.closestSD != null ? '<div style="color:var(--text-secondary)">Closest achievable SD = ' + fangResult.closestSD.toFixed(4) + '</div>' : '') +
     '</div>';
@@ -1694,7 +1773,7 @@ function renderReports(results, tdaResult, benfordResult, dupResult) {
     var r = results[ri];
     html += '<div class="card report-card" data-study="' + escapeAttr(r.study) + '" style="cursor:pointer">' +
       '<div class="report-header" style="display:flex;justify-content:space-between;align-items:center">' +
-      '<span style="font-weight:600">' + r.study + '</span>' +
+      '<span style="font-weight:600">' + escapeAttr(r.study) + '</span>' +
       verdictBadgeHtml(r.verdict) +
       '</div>' +
       '<div class="report-body" style="display:none;margin-top:12px;font-size:13px">' +
@@ -1715,7 +1794,7 @@ function renderReports(results, tdaResult, benfordResult, dupResult) {
     html += '<div style="padding:8px;margin-bottom:8px;border-left:3px solid var(--red);padding-left:12px;color:var(--text-secondary)">';
     for (var dri = 0; dri < dupResult.flaggedPairs.length; dri++) {
       var drp = dupResult.flaggedPairs[dri];
-      html += '<div>' + drp.study1 + ' \u2194 ' + drp.study2 + ': ' + drp.explanation + '</div>';
+      html += '<div>' + escapeAttr(drp.study1) + ' \u2194 ' + escapeAttr(drp.study2) + ': ' + escapeAttr(drp.explanation) + '</div>';
     }
     html += '</div>';
   }
@@ -1749,11 +1828,28 @@ function renderReports(results, tdaResult, benfordResult, dupResult) {
    ============================================================ */
 
 function sha256hex(text) {
-  var encoder = new TextEncoder();
-  var data = encoder.encode(text);
-  return crypto.subtle.digest('SHA-256', data).then(function(hash) {
-    return Array.from(new Uint8Array(hash)).map(function(b) { return b.toString(16).padStart(2, '0'); }).join('');
-  });
+  // crypto.subtle requires secure context (HTTPS or localhost); fallback for file:// protocol
+  if (typeof crypto !== 'undefined' && crypto.subtle) {
+    var encoder = new TextEncoder();
+    var data = encoder.encode(text);
+    return crypto.subtle.digest('SHA-256', data).then(function(hash) {
+      return Array.from(new Uint8Array(hash)).map(function(b) { return b.toString(16).padStart(2, '0'); }).join('');
+    });
+  }
+  // Fallback: simple djb2-based hash (not cryptographic, but sufficient for tamper-evidence label)
+  var h = 5381;
+  for (var i = 0; i < text.length; i++) h = ((h << 5) + h + text.charCodeAt(i)) >>> 0;
+  return Promise.resolve('djb2-' + h.toString(16).padStart(8, '0'));
+}
+
+function csvSafe(val) {
+  // CSV formula injection guard + RFC 4180 quoting
+  var s = String(val == null ? '' : val);
+  // Prefix formula-injection characters (but NOT '-' which corrupts negative medical values)
+  if (/^[=+@\t\r]/.test(s)) s = "'" + s;
+  // Quote if contains comma, quote, or newline
+  if (/[,"\r\n]/.test(s)) return '"' + s.replace(/"/g, '""') + '"';
+  return s;
 }
 
 function downloadFile(content, filename, type) {
@@ -1808,7 +1904,7 @@ function renderExport(results, tdaResult, benfordResult, dupResult, originalRows
   document.getElementById('exportCleanCSV').addEventListener('click', function() {
     var header = 'study,grim_result,grimmer_result,sprite_result,statcheck_result,overall_verdict';
     var lines = results.map(function(r) {
-      return [r.study, r.grim ? r.grim.result : '', r.grimmer ? r.grimmer.result : '', r.sprite ? r.sprite.result : '', r.statcheck ? r.statcheck.result : '', r.verdict].join(',');
+      return [csvSafe(r.study), r.grim ? r.grim.result : '', r.grimmer ? r.grimmer.result : '', r.sprite ? r.sprite.result : '', r.statcheck ? r.statcheck.result : '', r.verdict].join(',');
     });
     downloadFile(header + '\n' + lines.join('\n'), 'asa_results.csv', 'text/csv');
   });
@@ -1816,10 +1912,10 @@ function renderExport(results, tdaResult, benfordResult, dupResult, originalRows
     var flagged = results.filter(function(r) { return r.verdict === 'SUSPICIOUS' || r.verdict === 'SWALLOWED'; });
     var header = 'study,grim_result,grim_explanation,grimmer_result,grimmer_explanation,sprite_result,statcheck_result,statcheck_explanation,verdict';
     var lines = flagged.map(function(r) {
-      return [r.study, r.grim ? r.grim.result : '', '"' + ((r.grim ? r.grim.explanation : '') || '').replace(/"/g,'""') + '"',
-        r.grimmer ? r.grimmer.result : '', '"' + ((r.grimmer ? r.grimmer.explanation : '') || '').replace(/"/g,'""') + '"',
+      return [csvSafe(r.study), r.grim ? r.grim.result : '', csvSafe((r.grim ? r.grim.explanation : '') || ''),
+        r.grimmer ? r.grimmer.result : '', csvSafe((r.grimmer ? r.grimmer.explanation : '') || ''),
         r.sprite ? r.sprite.result : '', r.statcheck ? r.statcheck.result : '',
-        '"' + ((r.statcheck ? r.statcheck.explanation : '') || '').replace(/"/g,'""') + '"',
+        csvSafe((r.statcheck ? r.statcheck.explanation : '') || ''),
         r.verdict].join(',');
     });
     downloadFile(header + '\n' + lines.join('\n'), 'asa_flagged.csv', 'text/csv');

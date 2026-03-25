@@ -42,15 +42,25 @@ class TestGrimMultiItem:
         assert r['pass'] is False
 
 class TestGrimRounding:
-    def test_fail_n29(self, driver):
-        """n=29, mean=5.9 (1 dec): sum=171.1. Check both roundings: FAIL"""
+    def test_pass_n29_interval(self, driver):
+        """n=29, mean=5.9 (1dp): interval [5.85,5.95]*29 = [169.65, 172.55] contains 170,171,172 -> PASS"""
         r = js(driver, 'grimCheck(5.9, 29, 1, 1, "up_or_down")')
-        assert r['pass'] is False
+        assert r['pass'] is True
 
     def test_pass_exact_multiple(self, driver):
         """n=20, mean=3.0 -> sum=60, integer -> PASS"""
         r = js(driver, 'grimCheck(3.0, 20, 1, 1, "up_or_down")')
         assert r['pass'] is True
+
+    def test_pass_interval_catches_missed(self, driver):
+        """n=17, mean=3.53 (2dp): 3-point check misses but interval [59.925, 60.095] contains 60 -> PASS"""
+        r = js(driver, 'grimCheck(3.53, 17, 1, 2, "up_or_down")')
+        assert r['pass'] is True
+
+    def test_fail_truly_impossible(self, driver):
+        """n=7, mean=3.12 (2dp): interval [3.115, 3.125]*7 = [21.805, 21.875], no integer -> FAIL"""
+        r = js(driver, 'grimCheck(3.12, 7, 1, 2, "up_or_down")')
+        assert r['pass'] is False
 
 class TestGrimEdgeCases:
     def test_n2(self, driver):
