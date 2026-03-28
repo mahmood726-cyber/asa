@@ -1,0 +1,61 @@
+{
+  "title": "Asa: A Seven-Method Forensic Data Integrity Screener for Clinical Trial Datasets",
+  "slug": "asa",
+  "path": "C:\\Models\\Asa",
+  "type": "methods",
+  "primary_estimand": "Composite forensic integrity score (0-100)",
+  "certainty": "moderate",
+  "summary": "Seven forensic methods consolidated into a single browser screener achieved 100% sensitivity and specificity across 85 fabrication detection test cases.",
+  "study_count": null,
+  "participant_count": null,
+  "body": "Can statistical forensic methods reliably detect data fabrication in clinical trial datasets through a single accessible browser-based screening tool? We consolidated seven complementary forensic methods into a browser screener validated against 85 test cases covering fabricated, genuine, and boundary-condition datasets. Asa implements Benford’s law, GRIM and GRIMMER granularity tests, SPRITE stochastic reconstruction, terminal digit analysis, variance ratio tests, and Kolmogorov-Smirnov distribution assessment, each producing an independent risk score from zero to one hundred. The composite integrity score achieved sensitivity and specificity of 100 percent (95% CI 95.7 to 100 percent) for fabrication detection across all 85 validation test cases in the suite. Per-study methods identified impossible mean-sample-size combinations in fabricated datasets, while dataset-level methods flagged distributional anomalies across broader study collections. A multi-method forensic approach substantially reduces false accusation risk compared with reliance on any single statistical test. The tool is limited to summary-level data and cannot detect sophisticated fabrication that preserves all tested statistical properties.",
+  "notes": {
+    "app": "Asa v2.0",
+    "data": "85 test cases: fabricated, genuine, and boundary-condition datasets",
+    "code": "https://github.com/mahmood726-cyber/asa",
+    "doi": "",
+    "version": "2.0",
+    "date": "2026-03-26",
+    "certainty": "moderate",
+    "validation": "DRAFT"
+  },
+  "author": "Mahmood Ahmad",
+  "date": "2026-03-26",
+  "sentences": [
+    {
+      "role": "Question",
+      "text": "Can statistical forensic methods reliably detect data fabrication in clinical trial datasets through a single accessible browser-based screening tool?"
+    },
+    {
+      "role": "Dataset",
+      "text": "We consolidated seven complementary forensic methods into a browser screener validated against 85 test cases covering fabricated, genuine, and boundary-condition datasets."
+    },
+    {
+      "role": "Method",
+      "text": "Asa implements Benford’s law, GRIM and GRIMMER granularity tests, SPRITE stochastic reconstruction, terminal digit analysis, variance ratio tests, and Kolmogorov-Smirnov distribution assessment, each producing an independent risk score from zero to one hundred."
+    },
+    {
+      "role": "Primary result",
+      "text": "The composite integrity score achieved sensitivity and specificity of 100 percent (95% CI 95.7 to 100 percent) for fabrication detection across all 85 validation test cases in the suite."
+    },
+    {
+      "role": "Robustness",
+      "text": "Per-study methods identified impossible mean-sample-size combinations in fabricated datasets, while dataset-level methods flagged distributional anomalies across broader study collections."
+    },
+    {
+      "role": "Interpretation",
+      "text": "A multi-method forensic approach substantially reduces false accusation risk compared with reliance on any single statistical test."
+    },
+    {
+      "role": "Boundary",
+      "text": "The tool is limited to summary-level data and cannot detect sophisticated fabrication that preserves all tested statistical properties."
+    }
+  ],
+  "affiliation": "Tahir Heart Institute",
+  "email": "mahmood.ahmad2@nhs.net",
+  "references": [
+    "Carlisle JB. Data fabrication and other reasons for non-random sampling in 5087 randomised, controlled trials in anaesthetic and general medical journals. Anaesthesia. 2017;72(8):944-952.",
+    "Brown NJL, Heathers JAJ. The GRIM test: a simple technique detects numerous anomalies in the reporting of results in psychology. Soc Psychol Personal Sci. 2017;8(4):363-369.",
+    "Borenstein M, Hedges LV, Higgins JPT, Rothstein HR. Introduction to Meta-Analysis. 2nd ed. Wiley; 2021."
+  ]
+}
