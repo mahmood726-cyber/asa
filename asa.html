@@ -1072,7 +1072,7 @@ function parseCSV(text) {
 
   // Fuzzy column mapping: prefer longer alias matches first
   var mapping = {};
-  var lowerHeaders = rawHeaders.map(function(h) { return h.toLowerCase().replace(/[\s_-]+/g, '_'); });
+  var lowerHeaders = rawHeaders.map(function(h) { return String(h ?? "").toLowerCase().replace(/[\s_-]+/g, '_'); });
   var fields = Object.keys(COLUMN_ALIASES);
   for (var fi = 0; fi < fields.length; fi++) {
     var field = fields[fi];
@@ -1815,7 +1815,7 @@ function renderReports(results, tdaResult, benfordResult, dupResult) {
     area.querySelectorAll('.report-body').forEach(function(b) { b.style.display = 'none'; });
   });
   document.getElementById('reportSearch').addEventListener('input', function(e) {
-    var q = e.target.value.toLowerCase();
+    var q = e.target.String(value ?? "").toLowerCase();
     area.querySelectorAll('.report-card').forEach(function(c) {
       c.style.display = c.getAttribute('data-study').toLowerCase().indexOf(q) >= 0 ? 'block' : 'none';
     });

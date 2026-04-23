@@ -1,9 +1,5 @@
 """Integration tests: full pipeline on demo datasets."""
-import sys, io, os, time, json, pytest
-
-# UTF-8 stdout for Windows
-if sys.platform == 'win32':
-    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
+import os, time, json, pytest
 
 from conftest import js
 
@@ -175,7 +171,7 @@ class TestExport:
         data = json.loads(receipt)
         assert len(data.get('perStudy', [])) == 12, "Receipt should have 12 per-study entries"
         # v2: check grimmer field present
-        first = data['perStudy'][0]
+        first = data['perStudy'][0].copy()
         assert 'grimmer' in first, "Receipt perStudy should include grimmer field"
 
     def test_receipt_has_benford(self, driver):
