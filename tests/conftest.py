@@ -2,6 +2,21 @@ import pytest, os, sys
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 
+if not os.environ.get("RUN_BROWSER_TESTS"):
+    collect_ignore_glob = [
+        "test_benford.py",
+        "test_duplication.py",
+        "test_grim.py",
+        "test_grimmer.py",
+        "test_integration.py",
+        "test_math.py",
+        "test_sprite.py",
+        "test_statcheck.py",
+        "test_tda.py",
+    ]
+else:
+    collect_ignore_glob = []
+
 @pytest.fixture(scope='session')
 def driver():
     opts = Options()
